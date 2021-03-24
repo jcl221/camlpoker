@@ -7,7 +7,10 @@ type suit =
 
 (** A type representing a card with a suit and numerical rank in the
     range 1..13. *)
-type t
+type t = {
+  suit : suit;
+  rank : int;
+}
 
 val get_suit : t -> suit
 

@@ -2,7 +2,7 @@ type suit =
   | Hearts
   | Diamonds
   | Spades
-  | Club
+  | Clubs
 
 (** AF: The record { suit = [s]; rank = [r] } is a card of suit [s] and
     rank [r]. 
