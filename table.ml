@@ -72,10 +72,15 @@ let rec shuffle_help shuff current =
 let shuffle c =
   shuffle_help [] c
 
+let suit_to_int suit =
+  match suit with
+  | Hearts -> 0
+  | Diamonds -> 1
+  | Spades -> 2
+  | Clubs -> 3
+let init_deck = failwith "Unimplemented"
 
-(** [init_deck] is the starting 52 card deck used in Texas Hold-em *)
-val init_deck : unit -> deck
 
 (** [new_card c] takes the first card out of the deck of table c and
     puts in the optional community card list.*)
-val new_card : table -> table
+let new_card = failwith "Unimplemented"
