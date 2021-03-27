@@ -24,6 +24,11 @@ let pp_list pp_elt lst =
   in
   "[" ^ pp_elts lst ^ "]"
 
-let hand_to_string player hand =
+let rec string_helper lst acc =
+  match lst with
+  | [] -> acc
+  | h :: t -> string_helper t (acc ^ Card.string_of_card h)
+
+let hand_to_string player =
   let hand_to_print = player.hand in
-  pp_list pp_string hand_to_print
+  string_helper hand_to_print ""
