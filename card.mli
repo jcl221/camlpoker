@@ -12,8 +12,13 @@ type t = {
   rank : int;
 }
 
+(** [init_card suit rank] is the card with suit [suit] and rank [rank]. *)
+val init_card : suit -> int -> card
+
+(** [get_suit card] is the suit of card [card]. *)
 val get_suit : t -> suit
 
+(** [get_rank card] is the rank of card [card]. *)
 val get_rank : t -> int
 
 (** [string_of_card] is the string representation of card [card]. *)
