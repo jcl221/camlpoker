@@ -1,5 +1,6 @@
 exception Invalid_Deck
 exception Empty_Deck
+open Card
 
 type deck = Card.t list
 
