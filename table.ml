@@ -57,17 +57,17 @@ let valid_start c =
 
 (** [shuffle_help shuff current] is the randomly shuffled deck that
     results from the original deck current.*)
-let rec shuffle_help shuff current =
+let rec shuffle_help (shuff : deck) current =
   if List.length shuff = 52 && List.length current = 0 then shuff
   else begin
     Random.self_init ();
     let ind = Random.int (List.length current) in
     let select = List.nth current ind in
     let updated_current = List.filter (fun x -> x <> select) current in
-    shuffle_help (updated_current :: shuff) updated_current
+    shuffle_help (select :: shuff) updated_current
   end
 
-let shuffle c = shuffle_help [] c
+let shuffle (c : deck) = shuffle_help [] c
 
 let int_to_suit num =
   match num with
@@ -76,7 +76,7 @@ let int_to_suit num =
   | 2 -> Card.Spades
   | _ -> Card.Clubs
 
-let init_deck =
+let init_deck () =
   let lst = ref [] in
   for x = 0 to 3 do
     for y = 1 to 13 do
