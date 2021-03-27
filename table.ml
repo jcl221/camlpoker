@@ -9,7 +9,7 @@ type deck = Card.t list
 type table = deck * Card.t list option
 
 (** [arr_mutator_help arr i] adds 1 to the element at index i in Array arr.*)
-let arr_mutater_help arr i =
+let arr_mutator_help arr i =
   arr.(i) <- arr.(i) + 1
 
 (** [has_4_of_rank c arr] is true if the c has 4 cards of each rank.
@@ -18,10 +18,10 @@ let arr_mutater_help arr i =
 let rec has_4_of_rank c arr =
   match c with
   | [] -> Array.fold_left (fun a x -> a && (x = 4)) true arr
-  | {suit = _ ; rank = r} :: t -> begin
+  | {Card.suit = _ ; rank = r} :: t -> begin
     let index = r - 1 in
     let _ = arr_mutator_help arr index in
-    has_4_of_rank t
+    has_4_of_rank t arr
   end
 
   (** [has_13_of_suit c arr] is true if c has 13 cards of each suit.
@@ -30,21 +30,21 @@ let rec has_4_of_rank c arr =
 let rec has_13_of_suit c arr =
   match c with
   | [] -> arr.(0) = 13 && arr.(1) = 13 && arr.(2) = 13 && arr.(3) = 13
-  | {suit = s ; rank = _} :: t -> begin
-    match (s: suit) with
-    | Hearts -> begin
+  | {Card.suit = s ; rank = _} :: t -> begin
+    match s with
+    | Card.Hearts -> begin
       let _ = arr_mutator_help arr 0 in
       has_13_of_suit c arr
     end
-    | Diamonds -> begin
+    | Card.Diamonds -> begin
       let _ = arr_mutator_help arr 1 in
       has_13_of_suit c arr
     end
-    | Spades -> begin
+    | Card.Spades -> begin
       let _ = arr_mutator_help arr 2 in
       has_13_of_suit c arr
     end
-    | Clubs -> begin
+    | Card.Clubs -> begin
       let _ = arr_mutator_help arr 3 in
       has_13_of_suit c arr
     end
@@ -72,15 +72,36 @@ let rec shuffle_help shuff current =
 let shuffle c =
   shuffle_help [] c
 
-let suit_to_int suit =
-  match suit with
-  | Hearts -> 0
-  | Diamonds -> 1
-  | Spades -> 2
-  | Clubs -> 3
-let init_deck = failwith "Unimplemented"
+let int_to_suit num =
+  match num with
+  | 0 -> Card.Hearts
+  | 1 -> Card.Diamonds
+  | 2 -> Card.Spades
+  | _ -> Card.Clubs
+let init_deck =
+  let lst = [] in
+  for x = 0 to 3 do
+    for y = 1 to 13 do
+      init_card (int_to_suit x) (y) :: lst
+    done
+  done
 
+let init_table cards board =
+  ((cards , board) : table)
 
-(** [new_card c] takes the first card out of the deck of table c and
-    puts in the optional community card list.*)
-let new_card = failwith "Unimplemented"
+let new_card (tab : table) =
+  match tab with
+  | (cards, board) -> begin
+    match cards with
+    | h :: t -> begin
+      match board with
+      | Some cards -> begin
+        let new_board = Some(cards @ [h]) in
+        init_table t new_board
+      end
+      | None -> begin
+        let new_board = Some(h :: []) in
+        init_table t new_board
+      end
+    end
+    | [] -> raise Invalid_Deck
