@@ -7,10 +7,10 @@ type player = {
 
 let player_init name hand = { name; hand }
 
-(*This function is from A2 (was provided to us)*)
+(*This function is from A2 (was provided to us). Not using it right now, ignore it*)
 let pp_string s = "\"" ^ s ^ "\""
 
-(*This function is from A2 (was provided to us)*)
+(*This function is from A2 (was provided to us). Not using it right now, ignore it*)
 let pp_list pp_elt lst =
   let pp_elts lst =
     let rec loop n acc = function

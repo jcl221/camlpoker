@@ -4,8 +4,8 @@ type player
 (*The type of player's hand*)
 type hand_type = Card.t list
 
-(* Initializes the player type *)
-val init : string -> int -> player
+(* [player_init] initializes the [player] type*)
+val player_init : string -> int -> player
 
-(* [hand_to_string hand] Converts a given players hand to a string *)
+(* [hand_to_string hand] Converts a given players [player] hand to a string *)
 val hand_to_string : player -> string
