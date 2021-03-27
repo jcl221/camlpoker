@@ -1,6 +1,6 @@
 type player = {
   name : string;
-  hand : string list; (*This should be Card.t list but its not working*)
+  cards : hand; (*This should be Card.t list but its not working*)
 }
 
 let player_init name hand = { name; hand }
