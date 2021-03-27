@@ -1,6 +1,8 @@
+type hand_type = Card.t list
+
 type player = {
   name : string;
-  cards : hand; (*This should be Card.t list but its not working*)
+  hand : hand_type;
 }
 
 let player_init name hand = { name; hand }
