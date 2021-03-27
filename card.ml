@@ -12,6 +12,8 @@ type t = {
   rank : int;
 }
 
+let init_card suit rank = { suit; rank }
+
 let get_suit card = card.suit
 
 let get_rank card = card.rank
