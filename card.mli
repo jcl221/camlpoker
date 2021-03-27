@@ -21,3 +21,6 @@ val get_suit : t -> suit
 
 (** [get_rank card] is the rank of card [card]. *)
 val get_rank : t -> int
+
+(** [string_of_card] is the string representation of card [card]. *)
+val string_of_card : t -> string
