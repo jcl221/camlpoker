@@ -2,11 +2,7 @@ type hand_type = Card.t list
 
 type player = {
   name : string;
-<<<<<<< HEAD
-  hand : Card.t list; (*This should be Card.t list but its not working*)
-=======
   hand : hand_type;
->>>>>>> 0a3d5e56bf4982933cdf8fbcdf4b537c1503da13
 }
 
 let player_init name hand = { name; hand }
