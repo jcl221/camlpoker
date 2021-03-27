@@ -12,14 +12,8 @@ type t = {
   rank : int;
 }
 
-(** [init_card suit rank] is the card with suit [suit], and rank [rank].
-    Requires: rank is in the range 1..13. *)
-val init_card : suit -> int -> t
-
-(** [get_suit card] is the suit of card [card]. *)
 val get_suit : t -> suit
 
-(** [get_rank card] is the rank of card [card]. *)
 val get_rank : t -> int
 
 (** [string_of_card] is the string representation of card [card]. *)

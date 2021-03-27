@@ -1,5 +1,6 @@
 exception Invalid_Deck
 exception Empty_Deck
+open Card
 
 type deck = Card.t list
 
@@ -104,4 +105,5 @@ let new_card (tab : table) =
         init_table t new_board
       end
     end
-    | [] -> raise Invalid_Deck;
+    | [] -> raise (Invalid_Deck)
+  end
