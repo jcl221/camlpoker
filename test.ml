@@ -23,6 +23,6 @@ let player_tests =
     "name check" >:: (fun _ -> assert_equal "p1" player1.name);
     "last decision check" >:: (fun _ -> assert_equal None player1.last_decision);
     "folded check" >:: (fun _ -> assert_equal false player1.folded);
-    "is AI check player 1" >:: (fun _ -> assert_equal false player1.isAI);
-    "is AI check player 2" >:: (fun _ -> assert_equal true player1.isAI);
+    "is AI check player 1" >:: (fun _ -> assert_equal false player1.is_AI);
+    "is AI check player 2" >:: (fun _ -> assert_equal true player1.is_AI);
   ]
