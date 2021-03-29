@@ -19,6 +19,14 @@ let get_suit card = card.suit
 let get_rank card = card.rank
 
 let string_of_card card =
+  let r =
+    match card.rank with
+    | 1 -> "Ace"
+    | 11 -> "Jack"
+    | 12 -> "Queen"
+    | 13 -> "King"
+    | x -> string_of_int x
+  in
   let s =
     match card.suit with
     | Hearts -> "Hearts"
@@ -26,5 +34,4 @@ let string_of_card card =
     | Spades -> "Spades"
     | Clubs -> "Clubs"
   in
-  let r = string_of_int card.rank in
   r ^ " of " ^ s

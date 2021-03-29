@@ -1,6 +1,6 @@
 #require "ounit2";;
 #require "ANSITerminal";;
 #directory "_build";;
-#load "main.cmo";;
-#load "player.cmo";;
 #load "card.cmo";;
+#load "player.cmo";;
+#load "table.cmo";;
