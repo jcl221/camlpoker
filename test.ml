@@ -85,7 +85,7 @@ let full_deck_test name deck =
   name >:: fun _ ->
   let suits = [| Hearts; Diamonds; Spades; Clubs |] in
   for s = 0 to 3 do
-    for r = 1 to 13 do
+    for r = 2 to 14 do
       let card = Card.init_card suits.(s) r in
       assert (contains_card card deck ~print_missing:true)
     done
