@@ -9,8 +9,8 @@ let shuffled_deck = shuffle new_deck
 
 let hand1 = [{suit = Spades; rank = 10}; {suit = Hearts; rank = 12}]
 let hand2 = [{suit = Clubs; rank = 14}; {suit = Diamonds; rank = 8}]
-let string_of_hand1 = "10 of Spades and 12 of Hearts"
-let string_of_hand2 = "14 of Clubs and 8 of Diamonds"
+let string_of_hand1 = "10 of Spades and Queen of Hearts"
+let string_of_hand2 = "Ace of Clubs and 8 of Diamonds"
 let player1 = player_init "p1" hand1
 let player2 = player_init "AI" hand2
 let player_tests = 

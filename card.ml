@@ -21,7 +21,7 @@ let get_rank card = card.rank
 let string_of_card card =
   let r =
     match card.rank with
-    | 1 -> "Ace"
+    | 14 -> "Ace"
     | 11 -> "Jack"
     | 12 -> "Queen"
     | 13 -> "King"
