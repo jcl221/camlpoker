@@ -21,7 +21,7 @@ let arr_mutator_help arr i = arr.(i) <- arr.(i) + 1
 let rec has_4_of_rank c arr =
   match c with
   | [] -> Array.fold_left (fun a x -> a && x = 4) true arr
-  | { Card.suit = _; rank = r } :: t ->
+  | { suit = _; rank = r } :: t ->
       let index = r - 1 in
       let _ = arr_mutator_help arr index in
       has_4_of_rank t arr
@@ -32,18 +32,18 @@ let rec has_4_of_rank c arr =
 let rec has_13_of_suit c arr =
   match c with
   | [] -> arr.(0) = 13 && arr.(1) = 13 && arr.(2) = 13 && arr.(3) = 13
-  | { Card.suit = s; rank = _ } :: t -> (
+  | { suit = s; rank = _ } :: t -> (
       match s with
-      | Card.Hearts ->
+      | Hearts ->
           let _ = arr_mutator_help arr 0 in
           has_13_of_suit c arr
-      | Card.Diamonds ->
+      | Diamonds ->
           let _ = arr_mutator_help arr 1 in
           has_13_of_suit c arr
-      | Card.Spades ->
+      | Spades ->
           let _ = arr_mutator_help arr 2 in
           has_13_of_suit c arr
-      | Card.Clubs ->
+      | Clubs ->
           let _ = arr_mutator_help arr 3 in
           has_13_of_suit c arr)
 
@@ -71,16 +71,16 @@ let shuffle (c : deck) = shuffle_help [] c
 
 let int_to_suit num =
   match num with
-  | 0 -> Card.Hearts
-  | 1 -> Card.Diamonds
-  | 2 -> Card.Spades
-  | _ -> Card.Clubs
+  | 0 -> Hearts
+  | 1 -> Diamonds
+  | 2 -> Spades
+  | _ -> Clubs
 
 let init_deck () =
   let lst = ref [] in
   for x = 0 to 3 do
     for y = 2 to 14 do
-      let card = Card.init_card (int_to_suit x) y in
+      let card = init_card (int_to_suit x) y in
       lst := card :: !lst
     done
   done;
