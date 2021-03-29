@@ -38,11 +38,15 @@ let pp_list pp_elt lst =
   in
   "[" ^ pp_elts lst ^ "]"
 
-let rec string_helper lst acc sep =
+let rec string_helper lst acc sep count =
   match lst with
   | [] -> acc
-  | h :: t -> string_helper t (acc ^ sep ^ Card.string_of_card h) sep
+  | h :: t -> begin
+    if count = 0
+    then string_helper t (Card.string_of_card h) sep (count + 1)
+    else string_helper t (acc ^ sep ^ Card.string_of_card h) sep (count + 1)
+  end
 
 let hand_to_string player =
   let hand_to_print = player.hand in
-  string_helper hand_to_print "" " and "
+  string_helper hand_to_print "" " and " 0
