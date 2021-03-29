@@ -79,7 +79,7 @@ let int_to_suit num =
 let init_deck () =
   let lst = ref [] in
   for x = 0 to 3 do
-    for y = 1 to 13 do
+    for y = 2 to 14 do
       let card = Card.init_card (int_to_suit x) y in
       lst := card :: !lst
     done

@@ -3,9 +3,23 @@ type hand_type = Card.t list
 type player = {
   name : string;
   hand : hand_type;
+  stack : int;
+  last_decision : string option;
+  folded : bool;
+  is_AI : bool;
 }
 
-let player_init name hand = { name; hand }
+
+
+let player_init (n : string) (c : Table.deck) = 
+  {
+    name = n;
+    hand = Table.deal_one_hand c;
+    stack = 200;
+    last_decision = None;
+    folded = false;
+    is_AI = if n = "AI" then true else false;
+  }
 
 (*This function is from A2 (was provided to us). Not using it right now, ignore it*)
 let pp_string s = "\"" ^ s ^ "\""
@@ -24,11 +38,11 @@ let pp_list pp_elt lst =
   in
   "[" ^ pp_elts lst ^ "]"
 
-let rec string_helper lst acc =
+let rec string_helper lst acc sep =
   match lst with
   | [] -> acc
-  | h :: t -> string_helper t (acc ^ Card.string_of_card h)
+  | h :: t -> string_helper t (acc ^ sep ^ Card.string_of_card h) sep
 
 let hand_to_string player =
   let hand_to_print = player.hand in
-  string_helper hand_to_print ""
+  string_helper hand_to_print "" " and "
