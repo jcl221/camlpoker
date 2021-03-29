@@ -13,16 +13,22 @@ let string_of_hand1 = "10 of Spades and Queen of Hearts"
 let string_of_hand2 = "Ace of Clubs and 8 of Diamonds"
 let player1 = player_init "p1" hand1
 let player2 = player_init "AI" hand2
+
+let player_string_help test_name player expected =
+  test_name >:: fun _ ->
+    assert_equal (hand_to_string player) expected
+
+let player_help name player_value expected =
+  name >:: fun _ ->
+    assert_equal player_value expected
 let player_tests = 
   [
-    "p1 hand to string" >:: (fun _ -> assert_equal string_of_hand1
-      (hand_to_string player1));
-    "p2 hand to string" >:: (fun _ -> assert_equal string_of_hand2
-      (hand_to_string player2));
-    "stack check" >:: (fun _ -> assert_equal 200 player1.stack);
-    "name check" >:: (fun _ -> assert_equal "p1" player1.name);
-    "last decision check" >:: (fun _ -> assert_equal None player1.last_decision);
-    "folded check" >:: (fun _ -> assert_equal false player1.folded);
-    "is AI check player 1" >:: (fun _ -> assert_equal false player1.is_AI);
-    "is AI check player 2" >:: (fun _ -> assert_equal true player1.is_AI);
+    player_string_help "p1 hand to string" player1 string_of_hand1;
+    player_string_help "p2 hand to string" player2 string_of_hand2;
+    player_help "stack check" player1.stack 200;
+    player_help "name check" player1.name "p1";
+    player_help "last decision check" player1.last_decision None;
+    player_help "folded check" player1.folded false;
+    player_help "is AI check player 1" player1.is_AI false;
+    player_help "is AI check player 2" player2.is_AI true;
   ]
