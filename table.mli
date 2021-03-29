@@ -19,6 +19,10 @@ val init_deck : unit -> deck
     puts in the optional list *)
 val new_card : table -> table
 
+(** [init table c board] is the table that represents the remaining deck
+    and the board (community) cards.*)
+val init_table : deck -> Card.t list option -> table
+
 (** [deal_one_hand c] takes the first two cards out of the deck and returns
     them representing giving the two cards to a player.*)
 val deal_one_hand : deck -> Card.t list
