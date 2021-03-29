@@ -101,3 +101,8 @@ let new_card (tab : table) =
               let new_board = Some [ h ] in
               init_table t new_board)
       | [] -> raise Invalid_Deck)
+
+let deal_one_hand (c : deck) =
+  match c with
+  | card1 :: card2 :: t -> [card1 ; card2]
+  | _ -> raise Empty_Deck
