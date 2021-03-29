@@ -18,3 +18,7 @@ val init_deck : unit -> deck
 (** [new_card c] takes the first card out of the deck of table c and
     puts in the optional list *)
 val new_card : table -> table
+
+(** [deal_one_hand c] takes the first two cards out of the deck and returns
+    them representing giving the two cards to a player.*)
+val deal_one_hand : deck -> Card.t list
