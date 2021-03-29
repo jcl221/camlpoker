@@ -164,6 +164,6 @@ let table_tests =
   ]
 let suite =
   "test suite for MS1"
-    >::: List.flatten [ player_tests ; card_mod_tests]
+    >::: List.flatten [ player_tests ; card_mod_tests ; table_tests]
   
 let _ = run_test_tt_main suite
