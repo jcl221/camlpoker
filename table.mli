@@ -26,3 +26,6 @@ val init_table : deck -> Card.t list option -> table
 (** [deal_one_hand c] takes the first two cards out of the deck and returns
     them representing giving the two cards to a player.*)
 val deal_one_hand : deck -> Card.t list
+
+exception Invalid_Deck
+exception Empty_Deck
