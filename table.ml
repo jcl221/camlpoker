@@ -22,7 +22,7 @@ let rec has_4_of_rank c arr =
   match c with
   | [] -> Array.fold_left (fun a x -> a && x = 4) true arr
   | { suit = _; rank = r } :: t ->
-      let index = r - 1 in
+      let index = r - 2 in
       let _ = arr_mutator_help arr index in
       has_4_of_rank t arr
 
@@ -36,16 +36,16 @@ let rec has_13_of_suit c arr =
       match s with
       | Hearts ->
           let _ = arr_mutator_help arr 0 in
-          has_13_of_suit c arr
+          has_13_of_suit t arr
       | Diamonds ->
           let _ = arr_mutator_help arr 1 in
-          has_13_of_suit c arr
+          has_13_of_suit t arr
       | Spades ->
           let _ = arr_mutator_help arr 2 in
-          has_13_of_suit c arr
+          has_13_of_suit t arr
       | Clubs ->
           let _ = arr_mutator_help arr 3 in
-          has_13_of_suit c arr)
+          has_13_of_suit t arr)
 
 let valid_start c =
   if

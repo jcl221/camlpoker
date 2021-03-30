@@ -146,13 +146,12 @@ let table_tests =
       Invalid_Deck (fun _ -> valid_start oversized);
     raise_exn_test "deck with one card is an invalid starting deck"
       Invalid_Deck (fun _ -> valid_start one_card_deck);
-    (* valid_start infinitely recurses or has too many recursive calls *)
-    (*
-        valid_start_test "A full unshuffled deck with 52 cards is valid."
-          start_deck;
-        valid_start_test "A full shuffled deck with 52 cards is valid"
-          shuffled_deck;
-    *)
+    
+    valid_start_test "A full unshuffled deck with 52 cards is valid."
+      start_deck;
+    valid_start_test "A full shuffled deck with 52 cards is valid"
+      shuffled_deck;
+    
     deck_size_test
       "drawing a card results in table with deck size decreased by 1"
       (fst one_community_card)
