@@ -12,20 +12,25 @@ val valid_start : deck -> deck
 (** [shuffle c] is a randomized copy of deck c*)
 val shuffle : deck -> deck
 
-(** [init_deck] is the starting 52 card deck used in Texas Hold-em *)
+(** [init_deck ()] is the starting 52 card deck used in Texas Hold-em *)
 val init_deck : unit -> deck
+
+(** [init_table ()] is a new table with the starting 52-card deck and no
+    community cards. *)
+val init_table : unit -> table
+
+(** [create c board] is the table with deck [deck] and community cards
+    listed in [board]. *)
+val create : deck -> Card.t list option -> table
 
 (** [new_card c] takes the first card out of the deck of table c and
     puts in the optional list *)
 val new_card : table -> table
 
-(** [init table c board] is the table that represents the remaining deck
-    and the board (community) cards.*)
-val init_table : deck -> Card.t list option -> table
-
-(** [deal_one_hand c] takes the first two cards out of the deck and returns
-    them representing giving the two cards to a player.*)
-val deal_one_hand : deck -> Card.t list
+(** [deal_one_hand c] takes the first two cards out of the deck and
+    returns them representing giving the two cards to a player.*)
+val deal_one_hand : deck -> Card.t * Card.t
 
 exception Invalid_Deck
+
 exception Empty_Deck

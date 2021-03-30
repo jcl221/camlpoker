@@ -86,7 +86,9 @@ let init_deck () =
   done;
   !lst
 
-let init_table cards board : table = (cards, board)
+let init_table () = (init_deck (), None)
+
+let create cards board : table = (cards, board)
 
 let new_card (tab : table) =
   match tab with
@@ -96,13 +98,14 @@ let new_card (tab : table) =
           match board with
           | Some cards ->
               let new_board = Some (cards @ [ h ]) in
-              init_table t new_board
+              create t new_board
           | None ->
               let new_board = Some [ h ] in
-              init_table t new_board)
+              create t new_board)
       | [] -> raise Invalid_Deck)
 
-let deal_one_hand (c : deck) =
-  match c with
-  | card1 :: card2 :: t -> [card1 ; card2]
+(* Deals a hand but the removal of these cards from deck still has to be accounted for. *)
+let deal_one_hand (d : deck) =
+  match d with
+  | card1 :: card2 :: _ -> (card1, card2)
   | _ -> raise Empty_Deck
