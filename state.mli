@@ -26,14 +26,27 @@ val bet : t -> string -> int -> unit
     players reveal their hands and a winner is determined. *)
 val showdown : t -> unit
 
-(** [get_hands st] is a list of pairs corresponding to players still in
-    the game. Each such pair contains the player's id and their hand.
+(** [has_forfeited st id] is whether the player with id [id] in state [st]
+    has forfeited. 
+    Raises: Not_found if there is no player listed w/ id [id] in state [st]. *)
+val has_forfeited : t -> string -> bool
+
+(** [player_info st id] is the string representation of a player with id [id]
+    in state [st], displaying the player's id, the amount of chips they have, 
+    and their bet. 
+    Raises: Not_found if there is no player listed w/ id [id] in state [st]. *)
+val player_info : t -> string -> string
+
+(** [string_of_hand st id] is the string representation of the hand held by 
+    player with id [id] in state [st]. 
+    Raises: Not_found if there is no player listed w/ id [id] in state [st]. *)
+val string_of_hand : t -> string -> string
+
+(** [string_of_table st] is the string representation of the poker table 
+        (i.e., the deck and community cards) in state [st]. *)
+val string_of_table : t -> string
+
+(** [player_hands st] is a list of pairs corresponding to players still
+    in the game. Each such pair contains the player's id and their hand.
     Raises: Invalid_Hand if players have not yet been dealt cards. *)
-val get_hands : t -> (string * Card.t list) list
-
-(** [get_winner st] is the id of the winning player. *)
-val get_winner : t -> string option
-
-(** [player_hands st] is a list of pairs containing each active player's
-    id and hand during the game state [st]. *)
 val player_hands : t -> string * (Card.t * Card.t) list
