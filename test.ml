@@ -4,29 +4,38 @@ open Table
 open Card
 
 let pp_string s = "\"" ^ s ^ "\""
+
 let new_deck = init_deck ()
+
 let shuffled_deck = shuffle new_deck
 
-let hand1 = [{suit = Spades; rank = 10}; {suit = Hearts; rank = 12}]
-let hand2 = [{suit = Clubs; rank = 14}; {suit = Diamonds; rank = 8}]
+let hand1 =
+  [ { suit = Spades; rank = 10 }; { suit = Hearts; rank = 12 } ]
+
+let hand2 =
+  [ { suit = Clubs; rank = 14 }; { suit = Diamonds; rank = 8 } ]
+
 let string_of_hand1 = "10 of Spades and Queen of Hearts"
+
 let string_of_hand2 = "Ace of Clubs and 8 of Diamonds"
+
 let player1 = player_init "p1" hand1
+
 let player2 = player_init "AI" hand2
 
 let player_string_help test_name player expected =
   test_name >:: fun _ ->
-    assert_equal (hand_to_string player) expected ~printer:(pp_string)
+  assert_equal (string_of_hand player) expected ~printer:pp_string
 
 let player_help name player_value expected =
-  name >:: fun _ ->
-    assert_equal player_value expected
-let player_tests = 
+  name >:: fun _ -> assert_equal player_value expected
+
+let player_tests =
   [
     player_string_help "p1 hand to string" player1 string_of_hand1;
     player_string_help "p2 hand to string" player2 string_of_hand2;
     player_help "stack check" player1.stack 200;
-    player_help "name check" player1.name "p1" ;
+    player_help "name check" player1.name "p1";
     player_help "last decision check" player1.last_decision None;
     player_help "folded check" player1.folded false;
     player_help "is AI check player 1" player1.is_AI false;
@@ -35,32 +44,39 @@ let player_tests =
 
 let init_card_test name suit rank expected_output =
   name >:: fun ctxt ->
-    assert_equal expected_output (init_card suit rank)
+  assert_equal expected_output (init_card suit rank)
+
 let get_suit_test name card expected_output =
   name >:: fun ctxt -> assert_equal expected_output (get_suit card)
-  
+
 let get_rank_test name card expected_output =
   name >:: fun ctxt -> assert_equal expected_output (get_rank card)
-  
+
 let string_of_card_test name card expected_output =
   name >:: fun ctxt ->
-    assert_equal expected_output (string_of_card card)
-  
+  assert_equal expected_output (string_of_card card)
+
 let card_mod_tests =
   [
     init_card_test "First init test" Hearts 6
       { suit = Hearts; rank = 6 };
     init_card_test "Second init test" Spades 8
       { suit = Spades; rank = 8 };
-    get_suit_test "First get_suit test" { suit = Diamonds; rank = 3 } Diamonds;
-    get_suit_test "Second get_suit test" { suit = Clubs; rank = 11 } Clubs;
+    get_suit_test "First get_suit test"
+      { suit = Diamonds; rank = 3 }
+      Diamonds;
+    get_suit_test "Second get_suit test"
+      { suit = Clubs; rank = 11 }
+      Clubs;
     get_rank_test "First get_rank test" { suit = Hearts; rank = 6 } 6;
     get_rank_test "Second get_rank test" { suit = Spades; rank = 9 } 9;
-    string_of_card_test "First string_of_card test" { suit = Spades; rank = 7 }
+    string_of_card_test "First string_of_card test"
+      { suit = Spades; rank = 7 }
       "7 of Spades";
     string_of_card_test "Second string_of_card test"
-      { suit = Diamonds; rank = 3 } "3 of Diamonds";
-    ]
+      { suit = Diamonds; rank = 3 }
+      "3 of Diamonds";
+  ]
 
 (** [deck_size_test name deck expected] is the OUnit test named [name],
     asserting that the size of deck [deck] equals [expected]. *)
@@ -129,9 +145,9 @@ let oversized = { suit = Hearts; rank = 1 } :: start_deck
 let one_card_deck = [ { suit = Hearts; rank = 1 } ]
 
 (* Test tables *)
-let empty_table = init_table [] None
+let empty_table = create [] None
 
-let start_table = init_table start_deck None
+let start_table = init_table ()
 
 let one_community_card = new_card start_table
 
@@ -146,13 +162,10 @@ let table_tests =
       Invalid_Deck (fun _ -> valid_start oversized);
     raise_exn_test "deck with one card is an invalid starting deck"
       Invalid_Deck (fun _ -> valid_start one_card_deck);
-    (* valid_start infinitely recurses or has too many recursive calls *)
-    (*
-        valid_start_test "A full unshuffled deck with 52 cards is valid."
-          start_deck;
-        valid_start_test "A full shuffled deck with 52 cards is valid"
-          shuffled_deck;
-    *)
+    valid_start_test "A full unshuffled deck with 52 cards is valid."
+      start_deck;
+    valid_start_test "A full shuffled deck with 52 cards is valid"
+      shuffled_deck;
     deck_size_test
       "drawing a card results in table with deck size decreased by 1"
       (fst one_community_card)
@@ -162,8 +175,9 @@ let table_tests =
       "drawing a card from table with empty deck raises Invalid_Deck"
       Invalid_Deck (fun _ -> new_card empty_table);
   ]
+
 let suite =
   "test suite for MS1"
-    >::: List.flatten [ player_tests ; card_mod_tests ; table_tests]
-  
+  >::: List.flatten [ player_tests; card_mod_tests; table_tests ]
+
 let _ = run_test_tt_main suite
