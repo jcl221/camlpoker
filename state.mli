@@ -1,17 +1,6 @@
 (** The abstract type of values representing the game state. *)
 type t
 
-(** The type of stages of a camlpoker match. *)
-type stage =
-  | Start
-  | Flop
-  | Bet1
-  | Turn
-  | Bet2
-  | River
-  | Bet3
-  | Showdown
-
 (** Raised when a player tries to play with an empty hand. *)
 exception Empty_Hand
 
@@ -64,9 +53,6 @@ val string_of_hand : t -> string -> string
 (** [string_of_table st] is the string representation of the poker table 
         (i.e., the deck and community cards) in state [st]. *)
 val string_of_table : t -> string
-
-(** [get_stage st] is the current stage of game state [st]. *)
-val get_stage : t -> stage
 
 (** [player_hands st] is a list of pairs corresponding to players still
     in the game. Each such pair contains the player's id and their hand.

@@ -9,17 +9,6 @@ type guest = {
   mutable forfeited : bool;
 }
 
-(** The type of stages of a camlpoker match. *)
-type stage =
-  | Start
-  | Flop
-  | Bet1
-  | Turn
-  | Bet2
-  | River
-  | Bet3
-  | Showdown
-
 (** AF: {players; action_queue; table; pot; winner } 
     is the game state with 
       * players listed in [players],
@@ -38,7 +27,6 @@ type t = {
   mutable table : Table.table;
   mutable pot : int;
   mutable winner : guest option;
-  mutable stage : stage;
 }
 
 exception Empty_Hand
@@ -53,7 +41,6 @@ let init_state ids =
     table = Table.init_table ();
     pot = 0;
     winner = None;
-    stage = Start;
   }
 
 (** [get_player st id] is the active player with id [id] for game state
@@ -111,8 +98,6 @@ let add_turns st =
   List.iter enqueue_player st.players
 
 let perform_turn st id cmd = failwith "Unimplemented"
-
-let get_stage st = st.stage
 
 let player_hands st = failwith "Unimplemented"
 
