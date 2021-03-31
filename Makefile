@@ -31,6 +31,10 @@ docs-private: build
 		-html -stars -d _doc.private \
 		-inv-merge-ml-mli -m A $(MLIS) $(MLS)
 
+zip:
+	zip src.zip *.ml* *.sh _tags .merlin .ocamlformat .ocamlinit LICENSE Makefile
+
 clean:
 	ocamlbuild -clean
-	rm -rf _doc.public _doc.private
+	rm -rf _doc.public _doc.private src.zip
+
