@@ -9,11 +9,13 @@ type table = deck * Card.t list option
     starting cards, 13 of each suit, 4 of each rank).*)
 val valid_start : deck -> deck
 
-(** [shuffle c] is a randomized copy of deck c*)
-val shuffle : deck -> deck
-
 (** [init_deck ()] is the starting 52 card deck used in Texas Hold-em *)
 val init_deck : unit -> deck
+
+(** [shuffle deck] is a randomized copy of deck [deck]. 
+    Requires: [deck] is a valid starting deck with 52 cards and 
+    containing all ranks of each suit. *)
+val shuffle : deck -> deck
 
 (** [init_table ()] is a new table with the starting 52-card deck and no
     community cards. *)
@@ -23,9 +25,9 @@ val init_table : unit -> table
     listed in [board]. *)
 val create : deck -> Card.t list option -> table
 
-(** [new_card c] takes the first card out of the deck of table c and
-    puts in the optional list *)
-val new_card : table -> table
+(** [place_center table] takes the first card out of the deck of table [table] 
+    and places it on the board (as a community card). *)
+val place_center : table -> table
 
 (** [deal_one_hand c] takes the first two cards out of the deck and
     returns them representing giving the two cards to a player.*)

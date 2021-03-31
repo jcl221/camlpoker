@@ -6,7 +6,7 @@ type suit =
   | Clubs
 
 (** A type representing a card with a suit and numerical rank in the
-    range 1..13. *)
+    range 2..14. *)
 type t = {
   suit : suit;
   rank : int;

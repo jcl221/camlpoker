@@ -92,7 +92,7 @@ let deal st =
   let deal_hand gst = gst.hand <- Some (Table.deal_one_hand deck) in
   List.iter deal_hand st.players;
   for i = 0 to 2 do
-    st.table <- Table.new_card st.table
+    st.table <- Table.place_center st.table
   done
 
 let fold st id =

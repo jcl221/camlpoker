@@ -6,7 +6,7 @@ type suit =
 
 (** AF: The record { suit = [s]; rank = [r] } is a card of suit [s] and
     rank [r]. 
-    RI: The value bound to rank must be in the range 1..13. *)
+    RI: The value bound to rank must be in the range 2..14. *)
 type t = {
   suit : suit;
   rank : int;
