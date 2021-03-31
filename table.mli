@@ -7,7 +7,7 @@ type table = deck * Card.t list option
 
 (** [valid_start c] is c if c is a valid starting deck (ie. all 52
     starting cards, 13 of each suit, 4 of each rank).*)
-val assert_valid_start : deck -> deck
+val assert_valid_start : deck -> unit
 
 (** [init_deck ()] is the starting 52 card deck used in Texas Hold-em *)
 val init_deck : unit -> deck
