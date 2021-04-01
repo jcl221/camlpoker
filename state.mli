@@ -26,6 +26,14 @@ val bet : t -> string -> int -> unit
     players reveal their hands and a winner is determined. *)
 val showdown : t -> unit
 
+(** [add_turn st] mutates state [st] accordingly to give each active player
+    with stakes in the game a pending turn to perform an action. *)
+val add_turns : t -> unit
+
+(** [perform_turn st id cmd] mutates state [st] accordingly after player 
+    with id [id] has had their turn and performed an action [cmd]. *)
+val perform_turn : t -> string -> string -> unit
+
 (** [has_forfeited st id] is whether the player with id [id] in state [st]
     has forfeited. 
     Raises: Not_found if there is no player listed w/ id [id] in state [st]. *)

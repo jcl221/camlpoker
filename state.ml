@@ -69,26 +69,34 @@ let player_info st id =
   player.id ^ " {chips: " ^ c ^ "; bet: " ^ b ^ "}"
 
 let string_of_table st =
-  let board = snd st.table in
+  let board = st.table.board in
   match board with
   | None -> "None"
   | Some lst -> Util.string_of_list Card.string_of_card lst
 
 let deal st =
-  let deck = fst st.table in
-  let deal_hand gst = gst.hand <- Some (Table.deal_one_hand deck) in
+  let deal_hand gst = gst.hand <- Some (Table.deal_hand st.table) in
   List.iter deal_hand st.players;
   for i = 0 to 2 do
-    st.table <- Table.new_card st.table
+    st.table <- Table.place_center st.table
   done
 
 let fold st id =
-  let player = get_player st id in
-  player.forfeited <- true
+  let p = get_player st id in
+  p.forfeited <- true
 
 let bet st id amt =
-  let player = get_player st id in
-  player.bet <- player.bet + amt
+  let p = get_player st id in
+  p.bet <- p.bet + amt;
+  st.pot <- st.pot + amt
+
+let add_turns st =
+  let enqueue_player p =
+    if not p.forfeited then st.action_queue <- st.action_queue @ [ p ]
+  in
+  List.iter enqueue_player st.players
+
+let perform_turn st id cmd = failwith "Unimplemented"
 
 let player_hands st = failwith "Unimplemented"
 
