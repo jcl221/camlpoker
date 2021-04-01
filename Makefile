@@ -32,7 +32,7 @@ docs-private: build
 		-inv-merge-ml-mli -m A $(MLIS) $(MLS)
 
 zip:
-	zip src.zip *.ml* *.sh _tags .merlin .ocamlformat .ocamlinit LICENSE Makefile
+	zip src.zip *.ml* *.sh _tags .merlin .ocamlformat .ocamlinit LICENSE Makefile INSTALL.md
 
 clean:
 	ocamlbuild -clean
