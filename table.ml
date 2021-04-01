@@ -86,7 +86,9 @@ let init_deck () =
   done;
   !lst
 
-let init_table () = (init_deck (), None)
+let init_table () =
+  let start_deck = () |> init_deck |> shuffle in
+  (start_deck, None)
 
 let create cards board : table = (cards, board)
 
