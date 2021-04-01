@@ -1,16 +1,18 @@
+type hand_type = Card.t * Card.t
+
 type player = {
   name : string;
-  hand : Card.t * Card.t;
+  hand : hand_type;
   stack : int;
   last_decision : string option;
   folded : bool;
   is_AI : bool;
 }
 
-let player_init (n : string) table =
+let player_init (n : string) (c : Table.deck) =
   {
     name = n;
-    hand = Table.deal_hand table;
+    hand = Table.deal_one_hand c;
     stack = 200;
     last_decision = None;
     folded = false;

@@ -1,4 +1,4 @@
-MODULES=main state player card table author
+MODULES=main player card table
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
