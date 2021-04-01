@@ -15,9 +15,9 @@ let hand1 =
 let hand2 =
   [ { suit = Clubs; rank = 14 }; { suit = Diamonds; rank = 8 } ]
 
-let string_of_hand1 = "10 of Spades and Queen of Hearts"
+let string_of_hand1 = "( 10 of Spades, Queen of Hearts )"
 
-let string_of_hand2 = "Ace of Clubs and 8 of Diamonds"
+let string_of_hand2 = "( Ace of Clubs, 8 of Diamonds )"
 
 let player1 = player_init "p1" hand1
 
