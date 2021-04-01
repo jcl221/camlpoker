@@ -2,8 +2,11 @@
 type deck = Card.t list
 
 (** a [table] is a combination of the deck and optional community cards.
-    There can be no community cards at the beginning of each hand.*)
-type table = deck * Card.t list option
+    There can be no community cards at the beginning of each hand. *)
+type table = {
+  mutable deck : deck;
+  mutable board : Card.t list option;
+}
 
 (** [valid_start c] is c if c is a valid starting deck (ie. all 52
     starting cards, 13 of each suit, 4 of each rank).*)
@@ -21,7 +24,7 @@ val shuffle : deck -> deck
     community cards. *)
 val init_table : unit -> table
 
-(** [create c board] is the table with deck [deck] and community cards
+(** [create deck board] is the table with deck [deck] and community cards
     listed in [board]. *)
 val create : deck -> Card.t list option -> table
 
@@ -29,9 +32,10 @@ val create : deck -> Card.t list option -> table
     and places it on the board (as a community card). *)
 val place_center : table -> table
 
-(** [deal_one_hand c] takes the first two cards out of the deck and
-    returns them representing giving the two cards to a player.*)
-val deal_one_hand : deck -> Card.t * Card.t
+(** [deal_hand table] is a hand consisting of the top two cards of the deck 
+    in [table]. Mutates [table] accordingly to remove these cards from 
+    the deck. *)
+val deal_hand : table -> Card.t * Card.t
 
 exception Invalid_Deck
 

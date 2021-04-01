@@ -6,10 +6,14 @@ open Card
 
 type deck = Card.t list
 
-(** AF: [table] is a tuple representing all cards in the deck and the
-    commmunity cards on the board. RI: There can be no more than 52
-    cards in the deck and no duplicates*)
-type table = deck * Card.t list option
+(** AF: { deck ; board } is the table with deck [deck] and board 
+  (community cards) [board]. 
+  RI: [deck] can contain no more than 52 elements, and must not 
+  have duplicates.*)
+type table = {
+  mutable deck : deck;
+  mutable board : Card.t list option;
+}
 
 (** [int_to_suit n] is the suit to which [n] maps.  *)
 let int_to_suit n =
@@ -59,28 +63,28 @@ let rec shuffle_help (shuffled : deck) current =
     shuffle_help (select :: shuffled) updated_current
   end
 
-let shuffle (c : deck) =
-  assert_valid_start c;
-  shuffle_help [] c
+let shuffle deck =
+  assert_valid_start deck;
+  shuffle_help [] deck
 
 let init_table () =
   let start_deck = () |> init_deck |> shuffle in
   assert_valid_start start_deck;
-  (start_deck, None)
+  { deck = start_deck; board = None }
 
-let create cards board : table = (cards, board)
+let create deck board : table = { deck; board }
 
 let place_center table =
-  let deck = fst table in
-  let board = snd table in
-  match deck with
+  match table.deck with
   | [] -> raise Empty_Deck
   | x :: xs -> (
-      match board with
+      match table.board with
       | None -> create xs (Some [ x ])
       | Some cards -> create xs (Some (x :: cards)))
 
-let deal_one_hand (d : deck) =
-  match d with
-  | card1 :: card2 :: _ -> (card1, card2)
-  | _ -> raise Empty_Deck
+let deal_hand table =
+  match table.deck with
+  | [] | [ _ ] -> raise Empty_Deck
+  | card1 :: card2 :: xs ->
+      table.deck <- xs;
+      (card1, card2)

@@ -69,14 +69,13 @@ let player_info st id =
   player.id ^ " {chips: " ^ c ^ "; bet: " ^ b ^ "}"
 
 let string_of_table st =
-  let board = snd st.table in
+  let board = st.table.board in
   match board with
   | None -> "None"
   | Some lst -> Util.string_of_list Card.string_of_card lst
 
 let deal st =
-  let deck = fst st.table in
-  let deal_hand gst = gst.hand <- Some (Table.deal_one_hand deck) in
+  let deal_hand gst = gst.hand <- Some (Table.deal_hand st.table) in
   List.iter deal_hand st.players;
   for i = 0 to 2 do
     st.table <- Table.place_center st.table

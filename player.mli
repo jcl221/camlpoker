@@ -1,10 +1,7 @@
-(*The type of player's hand*)
-type hand_type = Card.t * Card.t
-
 (*The abstract type of values representing a player*)
 type player = {
   name : string;
-  hand : hand_type;
+  hand : Card.t * Card.t;
   stack : int;
   last_decision : string option;
   folded : bool;
@@ -12,7 +9,7 @@ type player = {
 }
 
 (* [player_init] initializes the [player] type*)
-val player_init : string -> Table.deck -> player
+val player_init : string -> Table.table -> player
 
 (* [string_of_hand player] is the string representation of the hand 
     held by [player]. *)
