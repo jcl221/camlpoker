@@ -4,9 +4,9 @@ type suit =
   | Spades
   | Clubs
 
-(** AF: The record { suit = [s]; rank = [r] } is a card of suit [s] and
-    rank [r]. 
-    RI: The value bound to rank must be in the range 1..13. *)
+(** AF: The record {suit ; rank} is a card of suit [suit] and
+    rank [rank]. 
+    RI: The value bound to rank must be in the range 2..14. *)
 type t = {
   suit : suit;
   rank : int;
