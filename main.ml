@@ -11,7 +11,8 @@ let betting_round st =
            | "bet" ->
                print_endline "Please enter your bet amount";
                let amt = read_line () |> int_of_string in
-               State.bet st id amt
+               State.bet st id amt;
+               print_endline ("You bet: " ^ string_of_int amt)
            | "check" -> ()
            | _ -> print_endline "invalid command"
          else
@@ -58,7 +59,9 @@ let play user_id =
   for i = 0 to 2 do
     State.deal_center state
   done;
-  draw state lobby user_id
+  draw state lobby user_id;
+  betting_round state;
+  print_endline ("community cards: " ^ State.string_of_table state)
 
 (** [prompt message] is the user input entered in response to a
     [message] printed onto stdout. *)
