@@ -55,7 +55,18 @@ let bet st id amt = failwith "Unimplemented"
 let showdown st = failwith "Unimplemented"
 let active_bet st = st.active_bet
 
-let get_player st id = failwith "Unimplemented"
+let get_player st id =
+  let rec get_player_from_lst (lst : Player.player list) id =
+    match lst with
+    | [] -> raise (Failure "Not Found")
+    | h :: t -> begin
+      if h.name = id then h else get_player_from_lst t id
+    end
+  in
+  get_player_from_lst st.players id
 
-let player_hands st = failwith "Unimplemented"
+let player_hand (player : Player.player) =
+  (player.name, player.hand)
+let player_hands st =
+  List.map player_hand st.players
 

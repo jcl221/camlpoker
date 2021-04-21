@@ -23,3 +23,6 @@ let string_of_hand player =
       let c1_string = Card.string_of_card c1 in
       let c2_string = Card.string_of_card c2 in
       "( " ^ c1_string ^ ", " ^ c2_string ^ " )"
+
+let player_info player =
+  "Name: " ^ player.name ^ ", Chips: " ^ string_of_int player.stack
