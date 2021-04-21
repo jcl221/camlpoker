@@ -1,4 +1,4 @@
-let betting_round st =
+(**let betting_round st =
   State.add_turns st;
   let rec player_turns () =
     let active_bet = State.active_bet st in
@@ -26,7 +26,7 @@ let betting_round st =
 
         player_turns ()
   in
-  player_turns ()
+  player_turns () *)
 
 (** [print_player st user_id id] prints the relevant game state information 
     for player with id [id] in state [st]. 

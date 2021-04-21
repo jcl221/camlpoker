@@ -88,3 +88,8 @@ let deal_hand table =
   | card1 :: card2 :: xs ->
       table.deck <- xs;
       (card1, card2)
+
+let string_of_table tab =
+  match tab.board with
+  | None -> "None"
+  | Some lst -> Util.string_of_list Card.string_of_card lst

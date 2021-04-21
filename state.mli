@@ -10,58 +10,33 @@ exception Empty_Hand
     been dealt. *)
 val init_state : string list -> t
 
-(** [deal_center st] mutates state [st] accordingly after dealing a community
+(** [deal_center st] is the new state [st] after dealing a community
     card in the center of the table.  *)
-val deal_center : t -> unit
+val deal_center : t -> t
 
-(** [fold st player_id] mutates state [st] accordingly after player with
+(** [fold st player_id] is the new state [st] after player with
     id [id] folds. *)
-val fold : t -> string -> unit
+val fold : t -> string -> t
 
-(** [bet st player_id amt] mutates state [st] accordingly after player
+(** [bet st player_id amt] is the new state [st] after player
     with id [id] decides to place a bet of amount [amt]. *)
-val bet : t -> string -> int -> unit
+val bet : t -> string -> int -> t
 
-(** [showdown st] mutates state [st] accordingly after all active
-    players reveal their hands and a winner is determined. *)
-val showdown : t -> unit
-
-(** [add_turn st] mutates state [st] accordingly to give each active player
-    with stakes in the game a pending turn to perform an action. *)
-val add_turns : t -> unit
-
-(** [get_turn] mutates [st] accordingly to retrive the next player to perform 
-    a turn. Returns [None] if there are no remaining players that need to 
-    perform their turn. *)
-val get_turn : t -> string option
+(** [showdown st] is the new state [st] after all active
+    players reveal their hands and a winner is determined. The amount in the
+    pot goes to the winning player and except for the players, the state is
+    returned to its initial state.*)
+val showdown : t -> t
 
 (** [active_bet st] is the active bet amount for the current round in 
     state [st]. *)
 val active_bet : t -> int
 
-(** [perform_turn st id cmd] mutates state [st] accordingly after player 
-    with id [id] has had their turn and performed an action [cmd]. *)
-val perform_turn : t -> string -> string -> unit
-
-(** [has_forfeited st id] is whether the player with id [id] in state [st]
-    has forfeited. 
-    Raises: Not_found if there is no player listed w/ id [id] in state [st]. *)
-val has_forfeited : t -> string -> bool
-
-(** [player_info st id] is the string representation of a player with id [id]
-    in state [st], displaying the player's id, the amount of chips they have, 
-    and their bet. 
-    Raises: Not_found if there is no player listed w/ id [id] in state [st]. *)
-val player_info : t -> string -> string
-
-(** [string_of_hand st id] is the string representation of the hand held by 
-    player with id [id] in state [st]. 
-    Raises: Not_found if there is no player listed w/ id [id] in state [st]. *)
-val string_of_hand : t -> string -> string
-
-(** [string_of_table st] is the string representation of the poker table 
-        (i.e., the deck and community cards) in state [st]. *)
-val string_of_table : t -> string
+(** [get_player st id] is the active player with id [id] for game state
+    [st].
+    Raises: Not_found if there is no player with id [id] in the given 
+    state.*)
+val get_player : t -> string -> Player.player
 
 (** [player_hands st] is a list of pairs corresponding to players still
     in the game. Each such pair contains the player's id and their hand.

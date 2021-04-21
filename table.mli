@@ -37,6 +37,10 @@ val place_center : table -> table
     the deck. *)
 val deal_hand : table -> Card.t * Card.t
 
+(** [string_of_table tab] is the string representation of the poker table 
+        (i.e., the deck and community cards) table [st]. *)
+val string_of_table : table -> string
+
 exception Invalid_Deck
 
 exception Empty_Deck
