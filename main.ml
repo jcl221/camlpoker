@@ -1,3 +1,32 @@
+let betting_round st =
+  State.add_turns st;
+  let rec player_turns () =
+    let active_bet = State.active_bet st in
+    match State.get_turn st with
+    | None -> ()
+    | Some id ->
+        (let cmd = read_line () in
+         if active_bet = 0 then
+           match cmd with
+           | "bet" ->
+               print_endline "Please enter your bet amount";
+               let amt = read_line () |> int_of_string in
+               State.bet st id amt
+           | "check" -> ()
+           | _ -> print_endline "invalid command"
+         else
+           match cmd with
+           | "raise" ->
+               print_endline "Please enter your bet amount";
+               let amt = read_line () |> int_of_string in
+               State.bet st id (active_bet + amt)
+           | "fold" -> State.fold st id
+           | _ -> print_endline "invalid command");
+
+        player_turns ()
+  in
+  player_turns ()
+
 (** [print_player st user_id id] prints the relevant game state information 
     for player with id [id] in state [st]. 
     Only the player with [user_id] (i.e., the main user) will have their hand 
@@ -26,7 +55,9 @@ let draw st lobby user_id =
 let play user_id =
   let lobby = [ user_id; "Bot1"; "Bot2" ] in
   let state = State.init_state lobby in
-  State.deal state;
+  for i = 0 to 2 do
+    State.deal_center state
+  done;
   draw state lobby user_id
 
 (** [prompt message] is the user input entered in response to a

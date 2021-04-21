@@ -10,9 +10,9 @@ exception Empty_Hand
     been dealt. *)
 val init_state : string list -> t
 
-(** [deal st] mutates state [st] accordingly after the player hands and
-    flop are dealt out at the beginning of a match. *)
-val deal : t -> unit
+(** [deal_center st] mutates state [st] accordingly after dealing a community
+    card in the center of the table.  *)
+val deal_center : t -> unit
 
 (** [fold st player_id] mutates state [st] accordingly after player with
     id [id] folds. *)
@@ -29,6 +29,15 @@ val showdown : t -> unit
 (** [add_turn st] mutates state [st] accordingly to give each active player
     with stakes in the game a pending turn to perform an action. *)
 val add_turns : t -> unit
+
+(** [get_turn] mutates [st] accordingly to retrive the next player to perform 
+    a turn. Returns [None] if there are no remaining players that need to 
+    perform their turn. *)
+val get_turn : t -> string option
+
+(** [active_bet st] is the active bet amount for the current round in 
+    state [st]. *)
+val active_bet : t -> int
 
 (** [perform_turn st id cmd] mutates state [st] accordingly after player 
     with id [id] has had their turn and performed an action [cmd]. *)

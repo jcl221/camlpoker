@@ -24,6 +24,7 @@ type guest = {
 type t = {
   players : guest list;
   mutable action_queue : guest list;
+  mutable active_bet : int;
   mutable table : Table.table;
   mutable pot : int;
   mutable winner : guest option;
@@ -32,13 +33,21 @@ type t = {
 exception Empty_Hand
 
 let init_state ids =
+  let starting_table = Table.init_table () in
   let init_player id =
-    { id; chips = 50; bet = 0; hand = None; forfeited = false }
+    {
+      id;
+      chips = 50;
+      bet = 0;
+      hand = Some (Table.deal_hand starting_table);
+      forfeited = false;
+    }
   in
   {
     players = List.map init_player ids;
     action_queue = [];
-    table = Table.init_table ();
+    active_bet = 0;
+    table = starting_table;
     pot = 0;
     winner = None;
   }
@@ -74,12 +83,7 @@ let string_of_table st =
   | None -> "None"
   | Some lst -> Util.string_of_list Card.string_of_card lst
 
-let deal st =
-  let deal_hand gst = gst.hand <- Some (Table.deal_hand st.table) in
-  List.iter deal_hand st.players;
-  for i = 0 to 2 do
-    st.table <- Table.place_center st.table
-  done
+let deal_center st = st.table <- Table.place_center st.table
 
 let fold st id =
   let p = get_player st id in
@@ -88,6 +92,7 @@ let fold st id =
 let bet st id amt =
   let p = get_player st id in
   p.bet <- p.bet + amt;
+  st.active_bet <- amt;
   st.pot <- st.pot + amt
 
 let add_turns st =
@@ -95,6 +100,15 @@ let add_turns st =
     if not p.forfeited then st.action_queue <- st.action_queue @ [ p ]
   in
   List.iter enqueue_player st.players
+
+let get_turn st =
+  match st.action_queue with
+  | x :: xs ->
+      st.action_queue <- xs;
+      Some x.id
+  | [] -> None
+
+let active_bet st = st.active_bet
 
 let perform_turn st id cmd = failwith "Unimplemented"
 
