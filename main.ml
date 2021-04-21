@@ -61,6 +61,10 @@ let play user_id =
   done;
   draw state lobby user_id;
   betting_round state;
+  State.deal_center state;
+  print_endline ("community cards: " ^ State.string_of_table state);
+  betting_round state;
+  State.deal_center state;
   print_endline ("community cards: " ^ State.string_of_table state)
 
 (** [prompt message] is the user input entered in response to a
