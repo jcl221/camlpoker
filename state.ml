@@ -65,6 +65,14 @@ let bet st id amt =
   player_init should take in an argument for setting the player's # of chips. *)
 let showdown st = { st with pot = 0 }
 
-let active_bet st = st.active_bet
+let get_player st id =
+  let rec get_player_from_lst (lst : Player.player list) id =
+    match lst with
+    | [] -> raise (Failure "Not Found")
+    | h :: t -> if h.name = id then h else get_player_from_lst t id
+  in
+  get_player_from_lst st.players id
 
-let player_hands st = failwith "Unimplemented"
+let player_hand (player : Player.player) = (player.name, player.hand)
+
+let player_hands st = List.map player_hand st.players
