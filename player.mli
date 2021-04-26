@@ -16,6 +16,7 @@ val player_init : string -> Table.table -> player
 val string_of_hand : player -> string
 
 (** [player_info id] is the string representation of a player with id [id],
-    displaying the player's id and sthe amount of chips they have, 
+    displaying the player's id and the amount of chips they have.
+    For example, the form is ["Name: "player.name", Chips: "player.stack] 
     Raises: Not_found if there is no player listed w/ id [id] in state [st]. *)
-      val player_info : player -> string -> string
+val player_info : player -> string -> string
