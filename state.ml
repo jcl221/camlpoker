@@ -27,16 +27,15 @@ let init_state ids =
     table = starting_table;
     pot = 0;
   }
-let init_state ids = failwith "Unimplemented"
 
-let get_player st id = failwith "Unimplemented"
+let deal_center st = { st with table = Table.place_center st.table }
 
-(**st.table <- Table.place_center st.table*)
-let deal_center st = failwith "Unimplemented"
-
-(**let p = get_player st id in
-  p.forfeited <- true*)
-let fold st id = failwith "Unimplemented"
+let fold st id =
+  let survey (p : Player.player) =
+    if p.name = id then { p with folded = true } else p
+  in
+  let updated_players = List.map survey st.players in
+  { st with players = updated_players }
 
 let bet st id amt =
   let survey (p : Player.player) =
