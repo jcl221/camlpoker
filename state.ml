@@ -37,14 +37,6 @@ let fold st id =
   let updated_players = List.map survey st.players in
   { st with players = updated_players }
 
-(*match st.players with
-  |[] -> failwith ""
-  |h :: t -> if h.name = id then h.folded = true else *)
-
-(**let p = get_player st id in
-  p.bet <- p.bet + amt;
-  st.active_bet <- amt;
-  st.pot <- st.pot + amt*)
 let bet st id amt = failwith "Unimplemented"
 
 let showdown st = failwith "Unimplemented"
