@@ -49,7 +49,7 @@ let deal_center st = failwith "Unimplemented"
 let fold st id = failwith "Unimplemented"
 
 let bet st id amt =
-  let survey p =
+  let survey (p : Player.player) =
     if p.name = id then { p with stack = p.stack - amt } else p
   in
   let updated_players = List.map survey st.players in
