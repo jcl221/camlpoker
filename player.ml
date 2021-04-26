@@ -7,7 +7,7 @@ type player = {
   is_AI : bool;
 }
 
-let player_init (n : string) table =
+let player_init table (n : string) =
   {
     name = n;
     hand = Table.deal_hand table;
