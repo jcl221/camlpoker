@@ -26,3 +26,6 @@ let string_of_hand player =
 
 let player_info player =
   "Name: " ^ player.name ^ ", Chips: " ^ string_of_int player.stack
+
+let reset_player pl =
+  {pl with last_decision = None; folded = false}
