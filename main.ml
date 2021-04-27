@@ -67,7 +67,8 @@ let play user_id =
   State.deal_center state;
   print_endline ("community cards: " ^ State.string_of_table state);
   betting_round state;
-  print_endline "Showdown!"
+  print_endline "Showdown!";
+  State.showdown state
 
 (** [prompt message] is the user input entered in response to a
     [message] printed onto stdout. *)
