@@ -1,33 +1,3 @@
-(**let betting_round st =
-  State.add_turns st;
-  let rec player_turns () =
-    let active_bet = State.active_bet st in
-    match State.get_turn st with
-    | None -> ()
-    | Some id ->
-        (let cmd = read_line () in
-         if active_bet = 0 then
-           match cmd with
-           | "bet" ->
-               print_endline "Please enter your bet amount";
-               let amt = read_line () |> int_of_string in
-               State.bet st id amt;
-               print_endline ("You bet: " ^ string_of_int amt)
-           | "check" -> ()
-           | _ -> print_endline "invalid command"
-         else
-           match cmd with
-           | "raise" ->
-               print_endline "Please enter your bet amount";
-               let amt = read_line () |> int_of_string in
-               State.bet st id (active_bet + amt)
-           | "fold" -> State.fold st id
-           | _ -> print_endline "invalid command");
-
-        player_turns ()
-  in
-  player_turns () *)
-
 module Command = struct
   type t =
     | Bet of int
