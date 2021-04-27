@@ -28,12 +28,71 @@
   in
   player_turns () *)
 
+module Command = struct
+  type t =
+    | Bet of int
+    | Raise of int
+    | Check
+    | Fold
+    | Invalid
+
+  let parse str =
+    let words =
+      str |> String.lowercase_ascii
+      |> String.split_on_char ' '
+      |> List.filter (fun x -> x <> "")
+    in
+    match words with
+    | [ x ] when x = "fold" -> Fold
+    | [ x ] when x = "check" -> Check
+    | [ x1; x2 ] when x1 = "bet" -> (
+        try
+          let amt = int_of_string x2 in
+          Bet amt
+        with Failure _ -> Invalid)
+    | [ x1; x2 ] when x1 = "raise" -> (
+        try
+          let amt = int_of_string x2 in
+          Raise amt
+        with Failure _ -> Invalid)
+    | _ -> Invalid
+end
+
+(** [prompt_command id] is the command inputted into the command line by 
+  the user after being prompted to perform an action.  *)
+let rec prompt_command id =
+  print_endline (id ^ {|'s Turn: please enter a command |});
+  let cmd = read_line () |> Command.parse in
+  match cmd with
+  | Invalid ->
+      print_endline "Invalid command. Please try again.";
+      prompt_command id
+  | x -> x
+
+(** [betting_round st players] is the updated state from initial state [st] 
+    after a betting round has occurred. Specifically, it is the state after 
+    all players with ids listed in [players] have performed an action upon 
+    being prompted to do so. *)
+let rec betting_round st players =
+  match players with
+  | [] -> st
+  | id :: t ->
+      let st' =
+        match prompt_command id with
+        | Bet x -> State.bet st id x
+        | Raise x -> State.active_bet st + x |> State.bet st id
+        | Fold -> State.fold st id
+        | Check -> st
+        | _ -> failwith "invalid command parsed"
+      in
+      betting_round st' t
+
 (** [print_player st user_id id] prints the relevant game state information 
     for player with id [id] in state [st]. 
     Only the player with [user_id] (i.e., the main user) will have their hand 
     displayed. *)
 let print_player st user_id id =
-  let profile = State.player_info st id in
+  let profile = Player.player_info id in
   let cards =
     match State.has_forfeited st id with
     | true -> "Folded"
@@ -48,7 +107,7 @@ let print_player st user_id id =
     that the game lobby consists of players with ids listed in [lobby]. *)
 let draw st lobby user_id =
   print_endline "\n*** Table ***";
-  print_endline ("Community Cards: " ^ State.string_of_table st);
+  print_endline ("Community Cards: " ^ Table.string_of_table st);
   print_endline "\n*** Players ***";
   List.iter (print_player st user_id) lobby
 
