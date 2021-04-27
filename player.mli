@@ -20,3 +20,6 @@ val string_of_hand : player -> string
     For example, the form is ["Name: "player.name", Chips: "player.stack] 
     Raises: Not_found if there is no player listed w/ id [id] in state [st]. *)
 val player_info : player -> string -> string
+
+(** [reset_player pl] is the default version of player before a new round starts*)
+val reset_player : player -> player

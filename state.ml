@@ -18,6 +18,7 @@ type t = {
 }
 
 exception Empty_Hand
+exception Tie
 
 let init_state ids =
   let starting_table = Table.init_table () in
@@ -222,7 +223,160 @@ let two_pair hand =
     let values = same_rank_list ranks [] in
     let list_of_hand = two_pair_help values ranks in
     if num_of_pairs = 2 then Some (3, list_of_hand) else None
-let showdown st = { st with pot = 0 }
+
+(** [combnk k lst] is all combinations of length k in list [lst]. Credit for
+    the algorithm and implementation is given to 
+    https://codereview.stackexchange.com/questions/40366/combinations-of-size-k-from-a-list-in-ocaml*)
+let rec combnk k lst =
+  if k = 0 then
+    [[]]
+  else
+    let rec combnk_help = function
+      | []      -> []
+      | h :: t -> (List.map
+                    (fun x -> h :: x)
+                    (combnk (k - 1) t) :: combnk_help t) in
+    List.concat (combnk_help lst)
+
+(** [every_hand pl st] is all the possible 5 hand combinations for player [pl] in
+    state [st]. *)
+let every_hand (pl : Player.player) (st : t) =
+  let pl_two_cards = [fst pl.hand; snd pl.hand] in
+  let table = st.table in
+  match table.board with
+  | Some (c1 :: c2 :: c3 :: c4 :: c5 :: []) -> begin
+    combnk 5 (c1 :: c2 :: c3 :: c4 :: c5 :: [] @ pl_two_cards)
+  end
+  | _ -> raise (Invalid_argument "table is not filled completely")
+
+(** [best_hand hand] is a tuple option with the value of best hand from
+    a given card list [hand] and the list of that hand in descending order. *)
+let best_hand hand =
+  if royal_flush hand != None then
+    royal_flush hand
+  else if straight_flush hand != None then
+    straight_flush hand
+  else if four_of_a_kind hand != None then
+    four_of_a_kind hand
+  else if full_house hand != None then
+    full_house hand
+  else if flush hand != None then
+    flush hand
+  else if straight hand != None then
+    straight hand
+  else if three_of_a_kind hand != None then
+    three_of_a_kind hand
+  else if two_pair hand != None then
+    two_pair hand
+  else if pair hand != None then
+    pair hand
+  else high_card hand
+
+(** [better_hand hand1 hand2] is true if hand1 ranks higher than hand2
+    according to Texas Holdem rules*)
+let better_hand hand1 hand2 =
+  (** [out_of_option opt] converts opt of the form Some x to x. *)
+  let out_of_option opt =
+    match opt with
+    | Some x -> x
+    | None -> raise (Invalid_argument "opt is not filled") in
+
+  let h1 = out_of_option hand1 in
+  let h2 = out_of_option hand2 in
+  
+  let first1 = List.nth (snd h1) 0 in
+  let first2 = List.nth (snd h2) 0 in
+  let second1 = List.nth (snd h1) 1 in
+  let second2 = List.nth (snd h2) 1 in
+  let third1 = List.nth (snd h1) 2 in
+  let third2 = List.nth (snd h2) 2 in
+  let fourth1 = List.nth (snd h1) 3 in
+  let fourth2 = List.nth (snd h2) 3 in
+  let fifth1 = List.nth (snd h1) 4 in
+  let fifth2 = List.nth (snd h2) 4 in
+
+  if fst h1 = fst h2 then
+    if first1 = first2 then
+      if second1 = second2 then
+        if third1 = third2 then
+          if fourth1 = fourth2 then
+            if fifth1 = fifth2 then
+              raise Tie
+            else fifth1 > fifth2
+          else fourth1 > fourth2
+        else third1 > third2
+      else second1 > second2
+    else first1 > first2
+  else fst h1 > fst h2
+
+(** [compare_hands h1 h2] is 1 if h1 is better than h2, -1 if it is worse, and
+    0 if the hands are tied*)
+let compare_hands h1 h2 =
+  try
+    begin
+      if better_hand (best_hand h1) (best_hand h2) then 1
+      else if better_hand (best_hand h2) (best_hand h2) then -1
+      else 0
+    end
+  with Tie -> 0
+
+(** [best_player_hand pl st] is the best hand player [pl] has given her hand and
+    the board of the table in state [st]. *)
+let best_player_hand pl st =
+  let all_hands = every_hand pl st in
+  let all_sorted_hands = List.rev (List.sort compare_hands all_hands) in
+  List.nth all_sorted_hands 0
+
+(** [player_with_best_hand st] is a list of players with the best hand of all the
+    players in state [st]. *)
+let player_with_best_hand (st : t) =
+  let players = st.players in
+
+  let rec find_best_player (pls : Player.player list) acc =
+    if acc = [] then
+      match pls with
+      | [] -> raise (Failure "impossible")
+      | h :: t -> find_best_player t (h :: acc)
+    else
+      match pls with
+      | [] -> acc
+      | p1 :: t -> begin
+        let acc_cards = best_player_hand (List.nth acc 0) st in
+        let p1_cards = best_player_hand p1 st in
+        match compare_hands acc_cards p1_cards with
+        | 1 -> find_best_player t acc
+        | -1 -> find_best_player t (p1 :: [])
+        | _ -> find_best_player t (p1 :: acc)
+      end
+    in
+  find_best_player players []
+
+let showdown (st : t) =
+  let winning_ids =
+    List.map (fun (x : Player.player) -> x.name) (player_with_best_hand st) in
+  let num_winners = List.length winning_ids in
+  let players = st.players in
+
+  let rec add_to_stacks (pls : Player.player list) acc =
+    match pls with
+    | [] -> acc
+    | h :: t -> begin
+      if List.mem h.name winning_ids then
+        let money = h.stack + (st.pot / num_winners) in
+        let new_h = {h with stack = money} in
+        add_to_stacks t (new_h :: acc)
+      else add_to_stacks t (h :: acc)
+    end
+  in
+
+  let reset_players (pls : Player.player list) = List.map Player.reset_player pls in
+
+  {
+    players = reset_players (add_to_stacks players []);
+    active_bet = 0;
+    table = Table.init_table ();
+    pot = 0
+  }
 
 let get_player st id =
   let rec get_player_from_lst (lst : Player.player list) id =
