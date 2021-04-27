@@ -9,7 +9,7 @@ type player = {
 }
 
 (* [player_init] initializes the [player] type*)
-val player_init : string -> Table.table -> player
+val player_init : Table.table -> string -> player
 
 (* [string_of_hand player] is the string representation of the hand 
     held by [player]. *)
