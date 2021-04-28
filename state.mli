@@ -1,6 +1,11 @@
 (** The abstract type of values representing the game state. *)
 type t
 
+type stage =
+  | Preflop
+  | Midgame
+  | Showdown
+
 (** Raised when a player tries to play with an empty hand. *)
 exception Empty_Hand
 
@@ -10,17 +15,31 @@ exception Empty_Hand
     been dealt. *)
 val init_state : string list -> t
 
-(** [deal_center st] is the new state [st] after dealing a community
-    card in the center of the table.  *)
-val deal_center : t -> t
+(** [stage_of_game st] is the stage of the game corresponding to 
+    game state [st]. *)
+val stage_of_game : t -> stage
 
-(** [fold st player_id] is the new state [st] after player with
-    id [id] folds. *)
-val fold : t -> string -> t
+(** [deal_center count st] is the new state starting from state [st] after 
+    dealing a community card in the center of the table [count] number 
+    of times. *)
+val deal_center : int -> t -> t
 
-(** [bet st player_id amt] is the new state [st] after player
+(** [fold id st] is the new state [st] after player with id [id] folds. *)
+val fold : string -> t -> t
+
+(** [bet id amt st] is the new state [st] after player
     with id [id] decides to place a bet of amount [amt]. *)
-val bet : t -> string -> int -> t
+val bet : string -> int -> t -> t
+
+(** [ready_players st] is a list of the names of players who still have 
+    stakes in the game (have not folded) in state [st]. *)
+val ready_players : t -> string list
+
+(** [print_state st main_user] prints a string representation of state [st].
+    This includes printing the community cards, player information, and 
+    player hands for [st]. All hands except for that of the player 
+    with name [main_user] is obscured. *)
+val print_state : t -> string -> unit
 
 (** [showdown st] is the new state [st] after all active
     players reveal their hands and a winner is determined. The amount in the
@@ -36,9 +55,9 @@ val active_bet : t -> int
     [st].
     Raises: Not_found if there is no player with id [id] in the given 
     state.*)
-val get_player : t -> string -> Player.player
+val get_player : string -> t -> Player.player
 
 (** [player_hands st] is a list of pairs corresponding to players still
     in the game. Each such pair contains the player's id and their hand.
     Raises: Invalid_Hand if players have not yet been dealt cards. *)
-val player_hands : t -> string * (Card.t * Card.t) list
+val player_hands : t -> (string * (Card.t * Card.t)) list

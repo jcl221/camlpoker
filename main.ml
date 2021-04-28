@@ -1,18 +1,20 @@
 module Command = struct
   type t =
     | Bet of int
-    | Raise of int
     | Check
+    | Raise of int
+    | Call
     | Fold
     | Invalid
 
   let parse str =
-    let words =
+    let clauses =
       str |> String.lowercase_ascii
       |> String.split_on_char ' '
       |> List.filter (fun x -> x <> "")
     in
-    match words with
+    match clauses with
+    | [ x ] when x = "call" -> Call
     | [ x ] when x = "fold" -> Fold
     | [ x ] when x = "check" -> Check
     | [ x1; x2 ] when x1 = "bet" -> (
@@ -28,77 +30,6 @@ module Command = struct
     | _ -> Invalid
 end
 
-(** [prompt_command id] is the command inputted into the command line by 
-  the user after being prompted to perform an action.  *)
-let rec prompt_command id =
-  print_endline (id ^ {|'s Turn: please enter a command |});
-  let cmd = read_line () |> Command.parse in
-  match cmd with
-  | Invalid ->
-      print_endline "Invalid command. Please try again.";
-      prompt_command id
-  | x -> x
-
-(** [betting_round st players] is the updated state from initial state [st] 
-    after a betting round has occurred. Specifically, it is the state after 
-    all players with ids listed in [players] have performed an action upon 
-    being prompted to do so. *)
-let rec betting_round st players =
-  match players with
-  | [] -> st
-  | id :: t ->
-      let st' =
-        match prompt_command id with
-        | Bet x -> State.bet st id x
-        | Raise x -> State.active_bet st + x |> State.bet st id
-        | Fold -> State.fold st id
-        | Check -> st
-        | _ -> failwith "invalid command parsed"
-      in
-      betting_round st' t
-
-(** [print_player st user_id id] prints the relevant game state information 
-    for player with id [id] in state [st]. 
-    Only the player with [user_id] (i.e., the main user) will have their hand 
-    displayed. *)
-let print_player st user_id id =
-  let profile = Player.player_info id in
-  let cards =
-    match State.has_forfeited st id with
-    | true -> "Folded"
-    | false ->
-        if id = user_id then State.string_of_hand st id
-        else "( Hidden, Hidden )"
-  in
-  print_endline (profile ^ ": " ^ cards)
-
-(** [draw st player_id] draws the game state [st] onto the UI,
-    assuming that the player with id [user_id] is the main user and 
-    that the game lobby consists of players with ids listed in [lobby]. *)
-let draw st lobby user_id =
-  print_endline "\n*** Table ***";
-  print_endline ("Community Cards: " ^ Table.string_of_table st);
-  print_endline "\n*** Players ***";
-  List.iter (print_player st user_id) lobby
-
-(** Starts a new camlpoker match. *)
-let play user_id =
-  let lobby = [ user_id; "Bot1"; "Bot2" ] in
-  let state = State.init_state lobby in
-  for i = 0 to 2 do
-    State.deal_center state
-  done;
-  draw state lobby user_id;
-  betting_round state;
-  State.deal_center state;
-  print_endline ("community cards: " ^ State.string_of_table state);
-  betting_round state;
-  State.deal_center state;
-  print_endline ("community cards: " ^ State.string_of_table state);
-  betting_round state;
-  print_endline "Showdown!";
-  State.showdown state
-
 (** [prompt message] is the user input entered in response to a
     [message] printed onto stdout. *)
 let prompt message =
@@ -106,12 +37,70 @@ let prompt message =
   print_string ">> ";
   read_line ()
 
+(** [prompt_command id] is the command inputted into the command line by 
+  the user after being prompted to perform an action. *)
+let rec prompt_command id st =
+  let msg = id ^ {|'s Turn: please enter a command |} in
+  let cmd = msg |> prompt |> Command.parse in
+  if State.active_bet st = 0 then
+    match cmd with
+    | Invalid | Raise _ | Call | Fold ->
+        print_endline "Invalid. Please enter 'bet x' or 'check'.";
+        prompt_command id st
+    | x -> x
+  else
+    match cmd with
+    | Invalid | Bet _ | Check ->
+        print_endline
+          "Invalid. Please enter 'raise x', 'call', or 'fold'.";
+        prompt_command id st
+    | x -> x
+
+(** [betting_round st players] is the updated state from initial state [st] 
+    after a betting round has occurred. Specifically, it is the state after 
+    all players with ids listed in [players] have performed an action upon 
+    being prompted to do so. *)
+let betting_round st =
+  let rec betting_aux players st =
+    match players with
+    | [] -> st
+    | id :: t ->
+        let st' =
+          let cmd = prompt_command id st in
+          match cmd with
+          | Bet x -> State.bet id x st
+          | Check -> st
+          | Raise x -> State.bet id (x + State.active_bet st) st
+          | Call -> State.bet id (State.active_bet st) st
+          | Fold -> State.fold id st
+          | _ -> failwith "invalid command parsed"
+        in
+        betting_aux t st'
+  in
+  betting_aux (State.ready_players st) st
+
+let update st =
+  let post_bet = betting_round st in
+  match State.stage_of_game st with
+  | Preflop -> post_bet |> State.deal_center 3
+  | Midgame -> post_bet |> State.deal_center 1
+  | Showdown -> post_bet |> State.showdown
+
+(** [draw st player_id] draws the game state [st] onto the UI,
+    assuming that the player with id [user_id] is the main user and 
+    that the game lobby consists of players with ids listed in [lobby]. *)
+let draw main_user st = State.print_state st main_user
+
+let rec game_loop main_user st =
+  draw main_user st;
+  st |> update |> game_loop main_user
+
 (** Greets the player, prompts them for a name, then starts the main
-    game. *)
+    game loop. *)
 let main () =
   ANSITerminal.print_string [ ANSITerminal.green ]
     "\n\nWelcome to CamlPoker.\n";
-  let welcome = "Please enter a player id:" in
-  welcome |> prompt |> play
+  let user_id = prompt "Please enter a player id:" in
+  [ user_id; "Bot 1"; "Bot 2" ] |> State.init_state |> game_loop user_id
 
 let () = main ()

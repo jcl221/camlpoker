@@ -1,3 +1,11 @@
+(** AF: A record { name; hand; stack; last_decision; folded; is_AI } is 
+    the player at a poker table with name [name], a poker hand of [hand], 
+    an amount of chips [stack], and whose most recent action is 
+    [last_decision]. Whether the player has folded and whether they are 
+    an AI is given by [folded] and [is_AI]. 
+    
+    RI: The pair of cards in [hand] is not of the same rank and suit. 
+    [stack] is a nonnegative value. *)
 type player = {
   name : string;
   hand : Card.t * Card.t;
@@ -7,14 +15,14 @@ type player = {
   is_AI : bool;
 }
 
-let player_init table (n : string) =
+let player_init chips table name =
   {
-    name = n;
+    name;
     hand = Table.deal_hand table;
-    stack = 200;
+    stack = chips;
     last_decision = None;
     folded = false;
-    is_AI = (if n = "AI" then true else false);
+    is_AI = (if name = "AI" then true else false);
   }
 
 let string_of_hand player =
@@ -22,10 +30,9 @@ let string_of_hand player =
   | c1, c2 ->
       let c1_string = Card.string_of_card c1 in
       let c2_string = Card.string_of_card c2 in
-      "( " ^ c1_string ^ ", " ^ c2_string ^ " )"
+      "{| " ^ c1_string ^ ", " ^ c2_string ^ " |}"
 
-let player_info player =
-  "Name: " ^ player.name ^ ", Chips: " ^ string_of_int player.stack
+let player_info p =
+  "Name: " ^ p.name ^ " (Chips: " ^ string_of_int p.stack ^ ")"
 
-let reset_player pl =
-  {pl with last_decision = None; folded = false}
+let reset_player pl = { pl with last_decision = None; folded = false }

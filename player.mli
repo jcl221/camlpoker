@@ -1,4 +1,4 @@
-(*The abstract type of values representing a player*)
+(** The type of values representing a player. *)
 type player = {
   name : string;
   hand : Card.t * Card.t;
@@ -8,18 +8,18 @@ type player = {
   is_AI : bool;
 }
 
-(* [player_init] initializes the [player] type*)
-val player_init : Table.table -> string -> player
+(** [player_init name chips table] creates and initializes a new player 
+    with name [n] and an amount of chips [chips] at table [table]. *)
+val player_init : int -> Table.table -> string -> player
 
-(* [string_of_hand player] is the string representation of the hand 
-    held by [player]. *)
+(** [string_of_hand player] is the string representation of the hand 
+    held by [p]. *)
 val string_of_hand : player -> string
 
-(** [player_info id] is the string representation of a player with id [id],
-    displaying the player's id and the amount of chips they have.
-    For example, the form is ["Name: "player.name", Chips: "player.stack] 
-    Raises: Not_found if there is no player listed w/ id [id] in state [st]. *)
-val player_info : player -> string -> string
+(** [player_info p] is the string representation of a player [p],
+    displaying the player's id and the amount of chips they have. *)
+val player_info : player -> string
 
-(** [reset_player pl] is the default version of player before a new round starts*)
+(** [reset_player p] is the default version of player before a 
+    new round starts. *)
 val reset_player : player -> player
