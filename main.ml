@@ -7,27 +7,41 @@ module Command = struct
     | Fold
     | Invalid
 
+  (** [parse str] is the command corresponding to [str]. If [str] doesn't 
+      correspond to any valid poker action, [Invalid] is returned. *)
   let parse str =
-    let clauses =
+    let keywords =
       str |> String.lowercase_ascii
       |> String.split_on_char ' '
       |> List.filter (fun x -> x <> "")
     in
-    match clauses with
-    | [ x ] when x = "call" -> Call
-    | [ x ] when x = "fold" -> Fold
-    | [ x ] when x = "check" -> Check
-    | [ x1; x2 ] when x1 = "bet" -> (
+    match keywords with
+    | [ "call" ] -> Call
+    | [ "fold" ] -> Fold
+    | [ "check" ] -> Check
+    | [ "bet"; x2 ] -> (
         try
           let amt = int_of_string x2 in
           Bet amt
         with Failure _ -> Invalid)
-    | [ x1; x2 ] when x1 = "raise" -> (
+    | [ "raise"; x2 ] -> (
         try
           let amt = int_of_string x2 in
           Raise amt
         with Failure _ -> Invalid)
     | _ -> Invalid
+end
+
+module Opponent = struct
+  let turn st : Command.t =
+    print_string "Dummy's Turn: ";
+    match State.active_bet st with
+    | 0 ->
+        print_endline "check";
+        Check
+    | _ ->
+        print_endline "call";
+        Call
 end
 
 (** [prompt message] is the user input entered in response to a
@@ -37,22 +51,25 @@ let prompt message =
   print_string ">> ";
   read_line ()
 
-(** [prompt_command id] is the command inputted into the command line by 
-  the user after being prompted to perform an action. *)
+(** [prompt_command id] is the command entered into the command line by 
+    the user after being prompted to perform an action. *)
 let rec prompt_command id st =
-  let msg = id ^ {|'s Turn: please enter a command |} in
-  let cmd = msg |> prompt |> Command.parse in
+  let msg_base = id ^ "'s Turn: please enter a command " in
   if State.active_bet st = 0 then
+    let msg = msg_base ^ "('bet <amt>' or 'check')" in
+    let cmd = msg |> prompt |> Command.parse in
     match cmd with
     | Invalid | Raise _ | Call | Fold ->
-        print_endline "Invalid. Please enter 'bet x' or 'check'.";
+        print_endline "Invalid. Please enter 'bet <amt>' or 'check'. \n";
         prompt_command id st
     | x -> x
   else
+    let msg = msg_base ^ "('raise <amt>', 'call', or 'fold')" in
+    let cmd = msg |> prompt |> Command.parse in
     match cmd with
     | Invalid | Bet _ | Check ->
         print_endline
-          "Invalid. Please enter 'raise x', 'call', or 'fold'.";
+          "Invalid. Please enter 'raise <amt>', 'call', or 'fold'.";
         prompt_command id st
     | x -> x
 
@@ -66,7 +83,10 @@ let betting_round st =
     | [] -> st
     | id :: t ->
         let st' =
-          let cmd = prompt_command id st in
+          let cmd =
+            if (State.get_player id st).is_AI then Opponent.turn st
+            else prompt_command id st
+          in
           match cmd with
           | Bet x -> State.bet id x st
           | Check -> st
@@ -79,6 +99,9 @@ let betting_round st =
   in
   betting_aux (State.ready_players st) st
 
+(** [update st] is the new game state after the poker match in state [st] 
+    progresses through one betting round and the table is updated 
+    accordingly. *)
 let update st =
   let post_bet = betting_round st in
   match State.stage_of_game st with
@@ -86,11 +109,14 @@ let update st =
   | Midgame -> post_bet |> State.deal_center 1
   | Showdown -> post_bet |> State.showdown
 
-(** [draw st player_id] draws the game state [st] onto the UI,
-    assuming that the player with id [user_id] is the main user and 
-    that the game lobby consists of players with ids listed in [lobby]. *)
+(** [draw st player_id] draws the game state [st] onto the UI.
+    The hands of every player except the main user (identified by 
+    the id [main_user]) are obscured. *)
 let draw main_user st = State.print_state st main_user
 
+(** [game_loop main_user st] draws the state [st] onto the UI and updates 
+    it accordingly for another iteration of loop. The player with 
+    id [main_user] is assumed to be the main user. *)
 let rec game_loop main_user st =
   draw main_user st;
   st |> update |> game_loop main_user
@@ -101,6 +127,6 @@ let main () =
   ANSITerminal.print_string [ ANSITerminal.green ]
     "\n\nWelcome to CamlPoker.\n";
   let user_id = prompt "Please enter a player id:" in
-  [ user_id; "Bot 1"; "Bot 2" ] |> State.init_state |> game_loop user_id
+  [ user_id; "Dummy" ] |> State.init_state |> game_loop user_id
 
 let () = main ()

@@ -22,7 +22,7 @@ let player_init chips table name =
     stack = chips;
     last_decision = None;
     folded = false;
-    is_AI = (if name = "AI" then true else false);
+    is_AI = (if name = "Dummy" then true else false);
   }
 
 let string_of_hand player =

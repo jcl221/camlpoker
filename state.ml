@@ -84,7 +84,7 @@ let rec print_players main_user = function
       let profile = Player.player_info h in
       let cards =
         if h.folded then "Folded"
-        else if h.name <> main_user then "Hidden"
+          (* else if h.name <> main_user then "Hidden" *)
         else Player.string_of_hand h
       in
       print_endline (profile ^ ": " ^ cards);
@@ -400,6 +400,7 @@ let showdown (st : t) =
       (fun (x : Player.player) -> x.name)
       (player_with_best_hand st)
   in
+  List.iter (fun id -> print_endline (id ^ " wins!")) winning_ids;
   let num_winners = List.length winning_ids in
   let players = st.players in
 
@@ -425,6 +426,6 @@ let showdown (st : t) =
     pot = 0;
   }
 
-let player_hand (player : Player.player) = (player.name, player.hand)
-
-let player_hands st = List.map player_hand st.players
+let player_hands st =
+  let player_hand (p : Player.player) = (p.name, p.hand) in
+  List.map player_hand st.players
