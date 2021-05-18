@@ -355,12 +355,12 @@ let better_hand hand1 hand2 =
     else first1 > first2
   else fst h1 > fst h2
 
-(** [compare_hands h1 h2] is 1 if h1 is better than h2, -1 if it is worse, and
-    0 if the hands are tied*)
+(** [compare_hands h1 h2] is [1] if [h1] is a better hand than [h2], 
+    [-1] if it is worse, and 0 if the hands are tied. *)
 let compare_hands h1 h2 =
   try
     if better_hand (best_hand h1) (best_hand h2) then 1
-    else if better_hand (best_hand h2) (best_hand h2) then -1
+    else if better_hand (best_hand h2) (best_hand h1) then -1
     else 0
   with Tie -> 0
 
