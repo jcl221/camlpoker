@@ -73,31 +73,52 @@ let rec prompt_command id st =
         prompt_command id st
     | x -> x
 
+let rec combine_list lst1 =
+  match lst1 with [] -> [] | h :: t -> (h, 0) :: combine_list t
+
+let rec all_bets_equal pls highest =
+  match pls with
+  | [] -> true
+  | (id, bet) :: t -> highest = bet && all_bets_equal t highest
+
 (** [betting_round st players] is the updated state from initial state [st] 
     after a betting round has occurred. Specifically, it is the state after 
     all players with ids listed in [players] have performed an action upon 
     being prompted to do so. *)
 let betting_round st =
-  let rec betting_aux players st =
-    match players with
-    | [] -> st
-    | id :: t ->
-        let st' =
-          let cmd =
-            if (State.get_player id st).is_AI then Opponent.turn st
-            else prompt_command id st
-          in
+  let rec betting_aux players st highest num_checks =
+    if
+      all_bets_equal players highest
+      || num_checks = List.length (State.ready_players st)
+    then st
+    else
+      match players with
+      | [] -> st
+      | (id, bet) :: t -> (
+          let cmd = prompt_command id st in
           match cmd with
-          | Bet x -> State.bet id x st
-          | Check -> st
-          | Raise x -> State.bet id (x + State.active_bet st) st
-          | Call -> State.bet id (State.active_bet st) st
-          | Fold -> State.fold id st
-          | _ -> failwith "invalid command parsed"
-        in
-        betting_aux t st'
+          | Bet x ->
+              let st' = State.bet id x st in
+              betting_aux (t @ [ (id, x) ]) st' x num_checks
+          | Check ->
+              let st' = st in
+              betting_aux
+                (t @ [ (id, bet) ])
+                st' highest (num_checks + 1)
+          | Raise x ->
+              let st' = State.bet id (x + State.active_bet st) st in
+              betting_aux
+                (t @ [ (id, State.active_bet st') ])
+                st' (State.active_bet st') num_checks
+          | Call ->
+              let st' = State.bet id (State.active_bet st - bet) st in
+              betting_aux (t @ [ (id, highest) ]) st' highest num_checks
+          | Fold ->
+              let st' = State.fold id st in
+              betting_aux t st' highest num_checks
+          | _ -> failwith "invalid command parsed")
   in
-  betting_aux (State.ready_players st) st
+  betting_aux (combine_list (State.ready_players st)) st 1 0
 
 (** [update st] is the new game state after the poker match in state [st] 
     progresses through one betting round and the table is updated 
