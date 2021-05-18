@@ -1,4 +1,4 @@
-MODULES=main state player card table author
+MODULES=main state player card table author command ai
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
