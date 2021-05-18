@@ -1,38 +1,3 @@
-(*
-module Command = struct
-  type t =
-    | Bet of int
-    | Check
-    | Raise of int
-    | Call
-    | Fold
-    | Invalid
-
-  (** [parse str] is the command corresponding to [str]. If [str] doesn't 
-      correspond to any valid poker action, [Invalid] is returned. *)
-  let parse str =
-    let keywords =
-      str |> String.lowercase_ascii
-      |> String.split_on_char ' '
-      |> List.filter (fun x -> x <> "")
-    in
-    match keywords with
-    | [ "call" ] -> Call
-    | [ "fold" ] -> Fold
-    | [ "check" ] -> Check
-    | [ "bet"; x2 ] -> (
-        try
-          let amt = int_of_string x2 in
-          Bet amt
-        with Failure _ -> Invalid)
-    | [ "raise"; x2 ] -> (
-        try
-          let amt = int_of_string x2 in
-          Raise amt
-        with Failure _ -> Invalid)
-    | _ -> Invalid
-end *)
-
 module Opponent = struct
   let turn st : Command.t =
     print_string "Dummy's Turn: ";
