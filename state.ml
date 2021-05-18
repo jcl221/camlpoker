@@ -297,7 +297,7 @@ let rec combnk k lst =
 
 (** [every_hand pl st] is all the possible 5 hand combinations for player [pl] in
     state [st]. *)
-let every_hand (pl : Player.player) (st : t) =
+let every_hand (pl : Player.player) st =
   let pl_two_cards = [ fst pl.hand; snd pl.hand ] in
   let table = st.table in
   match table.board with
@@ -373,7 +373,7 @@ let best_player_hand pl st =
 
 (** [player_with_best_hand st] is a list of players with the best hand of all the
     players in state [st]. *)
-let player_with_best_hand (st : t) =
+let player_with_best_hand st =
   let players = st.players in
 
   let rec find_best_player (pls : Player.player list) acc =
@@ -394,7 +394,7 @@ let player_with_best_hand (st : t) =
   in
   find_best_player players []
 
-let showdown (st : t) =
+let showdown st =
   let winning_ids =
     List.map
       (fun (x : Player.player) -> x.name)

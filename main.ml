@@ -1,3 +1,4 @@
+(*
 module Command = struct
   type t =
     | Bet of int
@@ -30,7 +31,7 @@ module Command = struct
           Raise amt
         with Failure _ -> Invalid)
     | _ -> Invalid
-end
+end *)
 
 module Opponent = struct
   let turn st : Command.t =

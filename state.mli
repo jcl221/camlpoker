@@ -1,5 +1,10 @@
 (** The abstract type of values representing the game state. *)
-type t
+type t = {
+  players : Player.player list;
+  table : Table.table;
+  active_bet : int;
+  pot : int;
+}
 
 type stage =
   | Preflop
@@ -15,6 +20,10 @@ exception Empty_Hand
     been dealt. *)
 val init_state : string list -> t
 
+(** [stage_of_game st] is the stage of the game corresponding to 
+    game state [st]. *)
+val stage_of_game : t -> stage
+
 (** [deal_center count st] is the new state starting from state [st] after 
     dealing a community card in the center of the table [count] number 
     of times. *)
@@ -26,6 +35,16 @@ val fold : string -> t -> t
 (** [bet id amt st] is the new state [st] after player
     with id [id] decides to place a bet of amount [amt]. *)
 val bet : string -> int -> t -> t
+
+(** [ready_players st] is a list of the names of players who still have 
+    stakes in the game (have not folded) in state [st]. *)
+val ready_players : t -> string list
+
+(** [print_state st main_user] prints a string representation of state [st].
+    This includes printing the community cards, player information, and 
+    player hands for [st]. All hands except for that of the player 
+    with name [main_user] is obscured. *)
+val print_state : t -> string -> unit
 
 (** [showdown st] is the new state [st] after all active
     players reveal their hands and a winner is determined. The amount in the
@@ -56,8 +75,6 @@ val get_player : string -> t -> Player.player
     Raises: Invalid_Hand if players have not yet been dealt cards. *)
 val player_hands : t -> (string * (Card.t * Card.t)) list
 
-(** [print_state st main_user] prints a string representation of state [st].
-    This includes printing the community cards, player information, and 
-    player hands for [st]. All hands except for that of the player 
-    with name [main_user] is obscured. *)
-val print_state : t -> string -> unit
+(** [compare_hands h1 h2] is [1] if [h1] is a better hand than [h2], 
+    [-1] if it is worse, and 0 if the hands are tied. *)
+val compare_hands : Card.t list -> Card.t list -> int

@@ -2,6 +2,7 @@ open OUnit2
 open Player
 open Table
 open Card
+open State
 
 (* let pp_string s = "\"" ^ s ^ "\""
 
@@ -176,6 +177,56 @@ let table_tests =
       Invalid_Deck (fun _ -> new_card empty_table);
   ] *)
 
-let suite = "test suite for MS1" >::: List.flatten []
+(****************************************************************)
+(* Hand Ranking *)
+(****************************************************************)
+let high_card1 =
+  [
+    init_card Spades 2;
+    init_card Diamonds 3;
+    init_card Hearts 4;
+    init_card Spades 8;
+    init_card Spades 11;
+  ]
+
+let high_card2 =
+  [
+    init_card Hearts 2;
+    init_card Diamonds 4;
+    init_card Diamonds 8;
+    init_card Spades 12;
+    init_card Clubs 13;
+  ]
+
+let pair1 =
+  [
+    init_card Hearts 10;
+    init_card Spades 10;
+    init_card Hearts 4;
+    init_card Hearts 12;
+    init_card Clubs 13;
+  ]
+
+let pair2 =
+  [
+    init_card Diamonds 14;
+    init_card Hearts 14;
+    init_card Diamonds 4;
+    init_card Spades 8;
+    init_card Clubs 9;
+  ]
+
+let compare_hands_test name hand1 hand2 expected =
+  name >:: fun _ -> assert_equal expected (compare_hands hand1 hand2)
+
+let hand_rank_tests =
+  [
+    compare_hands_test "identical hands" high_card1 high_card1 0;
+    compare_hands_test "hand vs. higher hand" high_card1 high_card2 (-1);
+    compare_hands_test "pair vs. high card" pair1 high_card2 1;
+    compare_hands_test "higher pair vs. pair" pair2 pair1 1;
+  ]
+
+let suite = "test suite for MS1" >::: List.flatten [ hand_rank_tests ]
 
 let _ = run_test_tt_main suite
