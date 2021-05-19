@@ -36,6 +36,17 @@ val fold : string -> t -> t
     with id [id] decides to place a bet of amount [amt]. *)
 val bet : string -> int -> t -> t
 
+(** [if_no_wagers st] is the game state for a new match if all but one 
+    player in current state [st] has folded. Otherwise, the current 
+    state is returned unchanged. *)
+val if_no_wagers : t -> t
+
+(** [showdown st] is the new state from [st] after all active
+    players reveal their hands and a winner is determined. The amount in the
+    pot goes to the winning player and except for the players, the state is
+    returned to its initial state.*)
+val showdown : t -> t
+
 (** [ready_players st] is a list of the names of players who still have 
     stakes in the game (have not folded) in state [st]. *)
 val ready_players : t -> string list
@@ -45,12 +56,6 @@ val ready_players : t -> string list
     player hands for [st]. All hands except for that of the player 
     with name [main_user] is obscured. *)
 val print_state : t -> string -> unit
-
-(** [showdown st] is the new state from [st] after all active
-    players reveal their hands and a winner is determined. The amount in the
-    pot goes to the winning player and except for the players, the state is
-    returned to its initial state.*)
-val showdown : t -> t
 
 (** [stage_of_game st] is the stage of the game corresponding to 
     game state [st]. *)
@@ -65,9 +70,8 @@ val ready_players : t -> string list
 val active_bet : t -> int
 
 (** [get_player st id] is the active player with id [id] for game state
-    [st].
-    Raises: Not_found if there is no player with id [id] in the given 
-    state.*)
+    [st]. Raises: Not_found if there is no player with id [id] in the given 
+    state. *)
 val get_player : string -> t -> Player.player
 
 (** [player_hands st] is a list of pairs corresponding to players still
@@ -78,8 +82,3 @@ val player_hands : t -> (string * (Card.t * Card.t)) list
 (** [compare_hands h1 h2] is [1] if [h1] is a better hand than [h2], 
     [-1] if it is worse, and 0 if the hands are tied. *)
 val compare_hands : Card.t list -> Card.t list -> int
-
-(** [last_standing st] is the game state for a new match if all but one 
-    player in current state [st] has folded. Otherwise, the current 
-    state is returned unchanged. *)
-val last_standing : t -> t
