@@ -257,24 +257,205 @@ let rank cards =
 let hand_strength hand board deck =
   let current_rank = rank (hand @ board) in
   let poss_opp = combnk 2 deck in
-  let ahead, tied, behind =
-    let rec strength_help our_rank opp board ahead tied behind =
+  let (ahead, tied, behind) = 
+    let rec strength_help ai_rank opp board ahead tied behind =
       match opp with
       | [] -> (ahead, tied, behind)
       | h :: t ->
-          let opp_rank = rank (h @ board) in
-          if our_rank > opp_rank then
-            strength_help our_rank t board (ahead +. 1.0) tied behind
-          else if our_rank = opp_rank then
-            strength_help our_rank t board ahead (tied +. 1.0) behind
-          else strength_help our_rank t board ahead tied (behind +. 1.0)
-    in
-    strength_help current_rank poss_opp board 1.0 1.0 1.0
-  in
-  (ahead +. (tied /. 2.0)) /. (ahead +. tied +. behind)
+        let opp_rank = rank (h @ board) in
+        if (ai_rank > opp_rank)
+          then strength_help ai_rank t board (ahead +. 1.0) tied behind
+        else if (ai_rank = opp_rank)
+          then strength_help ai_rank t board ahead (tied +. 1.0) behind
+        else
+          strength_help ai_rank t board ahead tied (behind +. 1.0)
+    in strength_help current_rank poss_opp board 1.0 1.0 1.0
+  in (ahead +. (tied /. 2.0)) /. (ahead +. tied +. behind)
 
-(** [hand_potential hand board deck] is a tuple, the first element representing
+(** Types x and current are used as helpers in the hand_potential function. *)
+type x = {
+  ahead : float;
+  tied : float;
+  behind : float
+}
+type current = {
+  ahead_curr : x;
+  tied_curr : x;
+  behind_curr : x
+}
+
+(** [hand_potential ai_hand board deck] is a tuple, the first element representing
     the positive potential for the bot in the hand the second element
     representing the negative potential in the hand. *)
+let hand_potential ai_hand board deck table =
+  let ai_rank = rank (ai_hand @ board) in
+  let opp_cards = combnk 2 deck in
+  let hp_init_help = {ahead = 1.0; tied = 1.0; behind = 1.0} in
+  let init_hp = {
+    ahead_curr = hp_init_help;
+    tied_curr = hp_init_help;
+    behind_curr = hp_init_help
+  } in
+  let (total_hp, hp) =
+    let rec hp_help1 ai_hand ai_rank opp_cards board deck total_hp hp =
+      match opp_cards with
+      | [] -> (total_hp, hp)
+      | h :: t -> begin
+        let opp_rank = rank (h @ board) in
+        let new_total_hp =
+          if (ai_rank > opp_rank)
+            then {total_hp with ahead = (total_hp.ahead +. 1.0)}
+          else if (ai_rank = opp_rank)
+            then {total_hp with tied = (total_hp.tied +. 1.0)}
+          else
+            {total_hp with behind = (total_hp.behind +. 1.0)}
+        in
+        let now =
+          if (ai_rank > opp_rank) then 0
+          else if (ai_rank = opp_rank) then 1
+          else 2
+        in
+        let board_combinations = remaining_boards table in
+        let new_hand_pot =
+          let rec hp_help2 ai_hand opp_cards board total_hp hp board_combos index =
+            match board_combos with
+            | [] -> hp
+            | combo1 :: t' ->
+              let board1 = board @ combo1 in
+              let ai_best = rank (ai_hand @ board1) in
+              let opp_best = rank (opp_cards @ board1) in
+              let new_hand_pot' =
+                if now = 0 then
+                  if (ai_best > opp_best)
+                    then {hp with ahead_curr = ({hp.ahead_curr
+                    with ahead = (hp.ahead_curr.ahead +. 1.0)})}
+                  else if (ai_best = opp_best)
+                    then {hp with ahead_curr = ({hp.ahead_curr
+                    with tied = (hp.ahead_curr.tied +. 1.0)})}
+                  else
+                    {hp with ahead_curr = ({hp.ahead_curr
+                    with behind = (hp.ahead_curr.behind +. 1.0)})}
+                else if now = 1 then
+                  if (ai_best > opp_best)
+                    then {hp with tied_curr = ({hp.tied_curr
+                    with ahead = (hp.tied_curr.ahead +. 1.0)})}
+                  else if (ai_best = opp_best)
+                    then {hp with tied_curr = ({hp.tied_curr
+                    with tied = (hp.tied_curr.tied +. 1.0)})}
+                  else
+                    {hp with tied_curr = ({hp.tied_curr
+                    with behind = (hp.tied_curr.behind +. 1.0)})}
+                else
+                  if (ai_best > opp_best)
+                    then {hp with behind_curr = ({hp.behind_curr
+                    with ahead = (hp.behind_curr.ahead +. 1.0)})}
+                  else if (ai_best = opp_best)
+                    then {hp with behind_curr = ({hp.behind_curr
+                    with tied = (hp.behind_curr.tied +. 1.0)})}
+                  else
+                    {hp with behind_curr = ({hp.behind_curr
+                    with behind = (hp.behind_curr.behind +. 1.0)})}
+              in
+              hp_help2 ai_hand opp_cards board total_hp new_hand_pot' t' now
+            in
+          hp_help2 ai_hand h board total_hp hp board_combinations now
+        in
+        hp_help1 ai_hand ai_rank t board deck new_total_hp new_hand_pot
+      end
+      in
+      hp_help1 ai_hand ai_rank opp_cards board deck hp_init_help init_hp
+    in
+    let pos_potential = (hp.behind_curr.ahead +. (hp.behind_curr.tied /. 2.0)
+      +. (hp.tied_curr.ahead /. 2.0)) /. (total_hp.behind +. total_hp.tied) in
+    let neg_potential = (hp.ahead_curr.behind +. (hp.tied_curr.behind /. 2.0)
+      +. (hp.ahead_curr.tied /. 2.0)) /. (total_hp.ahead +. total_hp.tied) in
+    (pos_potential, neg_potential)
 
+(** [ehs ai_hand board deck] is the effective hand strength of the hand
+    given the board and deck, using the algorithm created above. *)
+let ehs ai_hand board deck table =
+  let hs = hand_strength ai_hand board deck in
+  let (pPot, nPot) = hand_potential ai_hand board deck table in
+  hs *. (1. -. nPot) +. (1. -. hs) *. pPot
+
+(** [easy_bot st] is the command of the easy ai. *)
+let easy_bot st =
+  let random = Random.int 10 in
+  if st.active_bet = 0
+    then if random < 5
+      then Check else Bet 10
+  else
+    if random < 5
+      then Fold else Call
+
+(** [conservative st] is the conservative command of the hard ai. *)
+let conservative st =
+  let random = Random.int 10 in
+  if st.active_bet = 0
+    then Check
+  else
+    if random < 3
+      then Fold else Call
+
+(** [aggressive st ai] is the aggressive command of the hard ai,
+    given the state and player [ai]. *)
+let aggressive st ai =
+  let random = Random.int 10 in
+  let half_pot = st.pot / 2 in
+  let bet_unit = if half_pot > ai.stack then ai.stack else half_pot in
+  let raise_unit = if bet_unit + st.active_bet > ai.stack
+    then ai.stack - st.active_bet else bet_unit in
+  if st.active_bet = 0
+    then if random < 3
+      then Check else Bet bet_unit
+  else
+    if random < 3
+      then Call else Raise raise_unit
+
+(** [basic st] is the basic move for the ai: check or call. *)
+let basic st =
+  if st.active_bet = 0 then Check else Call
+
+(** sublist algorithm taken from stack exchange:
+    https://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml. *)
+let sublist lst =
+  let rec sublist b e l = 
+    match l with
+      [] -> failwith "sublist"
+    | h :: t -> 
+        let tail = if e=0 then [] else sublist (b-1) (e-1) t in
+        if b>0 then tail else h :: tail
+  in
+  sublist 0 (List.length lst / 10) lst
+
+(** [get_first_bot pls] is the first bot in the player list [pls]. *)
+let rec get_first_bot pls =
+  match pls with
+  | [] -> failwith "Impossible"
+  | h :: t -> if h.is_AI then h else get_first_bot t
+
+(** [option_to_lst opt] is the list form of a list option [opt]. *)
+let option_to_lst opt =
+  match opt with
+  | None -> []
+  | Some x -> x
+
+(** [tuple_to_lst tup] is the list form of a tuple pair [tup]. *)
+let tuple_to_lst tup =
+  match tup with
+  | (a1, a2) -> [a1; a2]
+
+(** [hard_bot st] is the command of the hard ai bot given state [st]. *)
+let hard_bot st =
+  let ai = get_first_bot st.players in
+  let ai_hand = tuple_to_lst (ai.hand) in
+  let table = st.table in
+  let board = option_to_lst (table.board) in
+  let deck = sublist (table.deck) in
+  let ehs = ehs ai_hand board deck table in
+  if ehs < 0.2 then conservative st
+  else if ehs > 0.7 then aggressive st ai
+  else basic st
+
+(** [command st] is the command given by the bot given state [st]. *)
 let command st = failwith "Unimplemented"
