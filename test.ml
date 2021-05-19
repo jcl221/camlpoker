@@ -49,7 +49,8 @@ let player_tests =
   [
     player_string_help "p1 hand to string" player1 string_of_hand1;
     player_string_help "p2 hand to string" player2 string_of_hand2;
-    player_help "stack check" player1.stack 200;
+    player_help "player1 stack check" player1.stack 200;
+    player_help "player2 stack check" player2.stack 0;
     player_help "name check" player1.name "p1";
     player_help "last decision check" player1.last_decision None;
     player_help "folded check" player1.folded false;
@@ -77,6 +78,8 @@ let card_mod_tests =
       { suit = Hearts; rank = 6 };
     init_card_test "Second init test" Spades 8
       { suit = Spades; rank = 8 };
+    init_card_test "Third init test" Diamonds 9
+      { suit = Diamonds; rank = 9 };
     get_suit_test "First get_suit test"
       { suit = Diamonds; rank = 3 }
       Diamonds;
@@ -126,18 +129,14 @@ let full_deck_test name deck =
     that calling [f ()] raises exception [exn]. *)
 let raise_exn_test name exn f = name >:: fun _ -> assert_raises exn f
 
-(** [valid_start_test name deck] is the OUnit test named [name],
-    asserting the equality of [deck] and [valid_start deck]. *)
-
-let valid_start_test name deck =
-  name >:: fun _ -> assert_equal deck (assert_valid_start deck)
-
 (** [new_card_test name table] is the OUnit test named [name], asserting
     that [new_table table] is a table:
 
     1) with a deck that does not contain the most recent community card
     2) whose most recent community card was in the table to draw from,
     [table] *)
+
+(*
 let new_card_test name table =
   name >:: fun _ ->
   let new_table = init_table in
@@ -150,7 +149,7 @@ let new_card_test name table =
   let new_deck = fst new_table in
   assert (contains_card drawn old_deck);
   assert (not (contains_card drawn new_deck))
-
+*)
 (* Test decks *)
 let start_deck = init_deck ()
 
@@ -165,8 +164,6 @@ let empty_table = create [] None
 
 let start_table = init_table ()
 
-let one_community_card = init_card Hearts 5
-
 let table_tests =
   [
     deck_size_test "[init_deck ()] has 52 elements" start_deck 52;
@@ -178,18 +175,6 @@ let table_tests =
       Invalid_Deck (fun _ -> assert_valid_start oversized);
     raise_exn_test "deck with one card is an invalid starting deck"
       Invalid_Deck (fun _ -> assert_valid_start one_card_deck);
-    valid_start_test "A full unshuffled deck with 52 cards is valid."
-      start_deck;
-    valid_start_test "A full shuffled deck with 52 cards is valid"
-      shuffled_deck;
-    deck_size_test
-      "drawing a card results in table with deck size decreased by 1"
-      (fst one_community_card)
-      51;
-    new_card_test "drawing a card removes it from deck" start_table;
-    raise_exn_test
-      "drawing a card from table with empty deck raises Invalid_Deck"
-      Invalid_Deck (fun _ -> new_card empty_table);
   ]
 
 (****************************************************************)
