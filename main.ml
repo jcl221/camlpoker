@@ -59,7 +59,7 @@ let betting_round st =
     then st
     else
       match players with
-      | [] -> State.last_standing st
+      | [] -> st
       | (id, bet) :: t -> (
           let cmd = prompt_command id st in
           match cmd with
@@ -91,10 +91,13 @@ let betting_round st =
     accordingly. *)
 let update st =
   let post_bet = betting_round st in
-  match State.stage_of_game st with
-  | Preflop -> post_bet |> State.deal_center 3
-  | Midgame -> post_bet |> State.deal_center 1
-  | Showdown -> post_bet |> State.showdown
+  let check_all_folded = State.if_no_wagers post_bet in
+  if post_bet = check_all_folded then
+    match State.stage_of_game st with
+    | Preflop -> post_bet |> State.deal_center 3
+    | Midgame -> post_bet |> State.deal_center 1
+    | Showdown -> post_bet |> State.showdown
+  else check_all_folded
 
 (** [draw st player_id] draws the game state [st] onto the UI.
     The hands of every player except the main user (identified by 
