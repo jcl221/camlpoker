@@ -36,6 +36,12 @@ val fold : string -> t -> t
     with id [id] decides to place a bet of amount [amt]. *)
 val bet : string -> int -> t -> t
 
+(** [reset winners st] is the new game state after resetting the game for 
+    a new match from state [st]. A reset includes distributing the pot
+    equally amongst players listed in [winners], clearing the 
+    current table, and redealing hands to all players. *)
+val reset : string list -> t -> t
+
 (** [if_no_wagers st] is the game state for a new match if all but one 
     player in current state [st] has folded. Otherwise, the current 
     state is returned unchanged. *)
@@ -47,10 +53,6 @@ val if_no_wagers : t -> t
     returned to its initial state.*)
 val showdown : t -> t
 
-(** [ready_players st] is a list of the names of players who still have 
-    stakes in the game (have not folded) in state [st]. *)
-val ready_players : t -> string list
-
 (** [print_state st main_user] prints a string representation of state [st].
     This includes printing the community cards, player information, and 
     player hands for [st]. All hands except for that of the player 
@@ -61,13 +63,13 @@ val print_state : t -> string -> unit
     game state [st]. *)
 val stage_of_game : t -> stage
 
-(** [ready_players st] is a list of the names of players who still have 
-    stakes in the game (have not folded) in state [st]. *)
-val ready_players : t -> string list
-
 (** [active_bet st] is the active bet amount for the current round in 
     state [st]. *)
 val active_bet : t -> int
+
+(** [ready_players st] is a list of the names of players who still have 
+    stakes in the pot (have not folded) in state [st]. *)
+val active_players : t -> string list
 
 (** [get_player st id] is the active player with id [id] for game state
     [st]. Raises: Not_found if there is no player with id [id] in the given 

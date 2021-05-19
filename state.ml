@@ -37,7 +37,7 @@ let stage_of_game st =
   | None -> Preflop
   | Some lst -> if List.length lst = 5 then Showdown else Midgame
 
-let ready_players st =
+let active_players st =
   st.players
   |> List.filter (fun (p : Player.player) -> not p.folded)
   |> List.map (fun (p : Player.player) -> p.name)
@@ -82,7 +82,7 @@ let bet id amt st =
     a new match from state [st]. A reset includes distributing the pot
     equally amongst players listed in [winners], clearing the 
     current table, and redealing hands to all players. *)
-let restart winners st =
+let reset winners st =
   List.iter (fun name -> print_endline (name ^ " wins!")) winners;
   let new_table = Table.init_table () in
   let winnings = st.pot / List.length winners in
@@ -96,9 +96,9 @@ let restart winners st =
   { players = next_lobby; table = new_table; active_bet = 0; pot = 0 }
 
 let if_no_wagers st =
-  match ready_players st with
+  match active_players st with
   | [] -> failwith "impossible"
-  | [ p ] as winners -> restart winners st
+  | [ p ] as winners -> reset winners st
   | _ -> st
 
 let rec print_players main_user = function
@@ -423,31 +423,7 @@ let showdown st =
       (fun (x : Player.player) -> x.name)
       (player_with_best_hand st)
   in
-  List.iter (fun id -> print_endline (id ^ " wins!")) winning_ids;
-  let num_winners = List.length winning_ids in
-  let players = st.players in
-
-  let rec add_to_stacks (pls : Player.player list) acc =
-    match pls with
-    | [] -> acc
-    | h :: t ->
-        if List.mem h.name winning_ids then
-          let money = h.stack + (st.pot / num_winners) in
-          let new_h = { h with stack = money } in
-          add_to_stacks t (new_h :: acc)
-        else add_to_stacks t (h :: acc)
-  in
-
-  let reset_players (pls : Player.player list) =
-    List.map Player.reset_player pls
-  in
-
-  {
-    players = reset_players (add_to_stacks players []);
-    active_bet = 0;
-    table = Table.init_table ();
-    pot = 0;
-  }
+  reset winning_ids st
 
 let player_hands st =
   let player_hand (p : Player.player) = (p.name, p.hand) in

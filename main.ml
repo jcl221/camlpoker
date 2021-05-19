@@ -55,7 +55,7 @@ let betting_round st =
   let rec betting_aux players st highest num_checks =
     if
       all_bets_equal players highest
-      || num_checks = List.length (State.ready_players st)
+      || num_checks = List.length (State.active_players st)
     then st
     else
       match players with
@@ -84,20 +84,21 @@ let betting_round st =
               betting_aux t st' highest num_checks
           | _ -> failwith "invalid command parsed")
   in
-  betting_aux (combine_list (State.ready_players st)) st 1 0
+  betting_aux (combine_list (State.active_players st)) st 1 0
 
 (** [update st] is the new game state after the poker match in state [st] 
     progresses through one betting round and the table is updated 
     accordingly. *)
 let update st =
   let post_bet = betting_round st in
-  let check_all_folded = State.if_no_wagers post_bet in
-  if post_bet = check_all_folded then
-    match State.stage_of_game st with
-    | Preflop -> post_bet |> State.deal_center 3
-    | Midgame -> post_bet |> State.deal_center 1
-    | Showdown -> post_bet |> State.showdown
-  else check_all_folded
+  match State.active_players post_bet with
+  | [] -> failwith "impossible"
+  | [ _ ] as winners -> State.reset winners st
+  | _ -> (
+      match State.stage_of_game st with
+      | Preflop -> post_bet |> State.deal_center 3
+      | Midgame -> post_bet |> State.deal_center 1
+      | Showdown -> post_bet |> State.showdown)
 
 (** [draw st player_id] draws the game state [st] onto the UI.
     The hands of every player except the main user (identified by 
