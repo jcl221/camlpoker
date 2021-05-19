@@ -452,5 +452,7 @@ let restart winners st =
 let last_standing st =
   match ready_players st with
   | [] -> failwith "impossible"
-  | [ _ ] as winners -> restart winners st
+  | [ x ] as winners ->
+      print_endline (x ^ "wins!");
+      restart winners st
   | _ :: _ -> st

@@ -78,3 +78,8 @@ val player_hands : t -> (string * (Card.t * Card.t)) list
 (** [compare_hands h1 h2] is [1] if [h1] is a better hand than [h2], 
     [-1] if it is worse, and 0 if the hands are tied. *)
 val compare_hands : Card.t list -> Card.t list -> int
+
+(** [last_standing st] is the game state for a new match if all but one 
+    player in current state [st] has folded. Otherwise, the current 
+    state is returned unchanged. *)
+val last_standing : t -> t

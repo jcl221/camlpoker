@@ -59,7 +59,7 @@ let betting_round st =
     then st
     else
       match players with
-      | [] -> st
+      | [] -> State.last_standing st
       | (id, bet) :: t -> (
           let cmd = prompt_command id st in
           match cmd with
