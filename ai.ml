@@ -7,6 +7,7 @@ open Command
 (***************************************************************************)
 (* Hand Ranking from state.ml*)
 (***************************************************************************)
+
 (** [compare_cards c1 c2] is 1 if c1's rank is greater than c2's and -1
     otherwise. If they are equivalent, it is 0.*)
 let compare_cards (c1 : Card.t) (c2 : Card.t) =
@@ -204,7 +205,7 @@ let rec combnk k lst =
 
 (** [every_hand pl st] is all the possible 5 hand combinations for player [pl] in
     state [st]. *)
-let every_hand (pl : Player.player) (st : State.state) =
+let every_hand (pl : Player.player) (st : State.t) =
   let pl_two_cards = [ fst pl.hand; snd pl.hand ] in
   let table = st.table in
   match table.board with
@@ -228,23 +229,23 @@ let best_hand hand =
 
 (** [remaining_boards table] are all remaining cards that can
     complete the board. *)
-let remaining_boards (table : Table.table) = 
+let remaining_boards (table : Table.table) =
   let board = table.board in
   let deck = table.deck in
   match board with
   | None -> combnk 5 deck
-  | Some cards -> begin
-    let len = List.length cards in
-    if len = 3 then combnk 2 deck
-    else if len = 4 then combnk 1 deck
-    else []
-  end
+  | Some cards ->
+      let len = List.length cards in
+      if len = 3 then combnk 2 deck
+      else if len = 4 then combnk 1 deck
+      else []
 
-let rank cards = 
+let rank cards =
   let best = best_hand cards in
   match best with
   | None -> failwith "Impossible"
   | Some (rank, lst) -> rank
+
 (***************************************************************************)
 (* This poker probability algorithm is taken from the algorithm created by
   Billings, Papp, Schaeffer, and Szafron. Source: 

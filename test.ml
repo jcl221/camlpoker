@@ -2,6 +2,7 @@ open OUnit2
 open Player
 open Table
 open Card
+open State
 
 let pp_string s = "\"" ^ s ^ "\""
 
@@ -9,19 +10,33 @@ let new_deck = init_deck ()
 
 let shuffled_deck = shuffle new_deck
 
-let hand1 =
-  [ { suit = Spades; rank = 10 }; { suit = Hearts; rank = 12 } ]
+let hand1 = ({ suit = Spades; rank = 10 }, { suit = Hearts; rank = 12 })
 
-let hand2 =
-  [ { suit = Clubs; rank = 14 }; { suit = Diamonds; rank = 8 } ]
+let hand2 = ({ suit = Clubs; rank = 14 }, { suit = Diamonds; rank = 8 })
 
 let string_of_hand1 = "( 10 of Spades, Queen of Hearts )"
 
 let string_of_hand2 = "( Ace of Clubs, 8 of Diamonds )"
 
-let player1 = player_init "p1" hand1
+let player1 =
+  {
+    name = "p1";
+    hand = hand1;
+    stack = 200;
+    last_decision = None;
+    folded = false;
+    is_AI = false;
+  }
 
-let player2 = player_init "AI" hand2
+let player2 =
+  {
+    name = "AI";
+    hand = hand2;
+    stack = 0;
+    last_decision = None;
+    folded = false;
+    is_AI = true;
+  }
 
 let player_string_help test_name player expected =
   test_name >:: fun _ ->
@@ -113,8 +128,9 @@ let raise_exn_test name exn f = name >:: fun _ -> assert_raises exn f
 
 (** [valid_start_test name deck] is the OUnit test named [name],
     asserting the equality of [deck] and [valid_start deck]. *)
+
 let valid_start_test name deck =
-  name >:: fun _ -> assert_equal deck (valid_start deck)
+  name >:: fun _ -> assert_equal deck (assert_valid_start deck)
 
 (** [new_card_test name table] is the OUnit test named [name], asserting
     that [new_table table] is a table:
@@ -124,7 +140,7 @@ let valid_start_test name deck =
     [table] *)
 let new_card_test name table =
   name >:: fun _ ->
-  let new_table = new_card table in
+  let new_table = init_table in
   let drawn =
     match snd new_table with
     | Some (h :: _) -> h
@@ -149,7 +165,7 @@ let empty_table = create [] None
 
 let start_table = init_table ()
 
-let one_community_card = new_card start_table
+let one_community_card = init_card Hearts 5
 
 let table_tests =
   [
@@ -159,9 +175,9 @@ let table_tests =
     full_deck_test "shuffling preserves elements of a deck"
       shuffled_deck;
     raise_exn_test "oversized deck is an invalid starting deck"
-      Invalid_Deck (fun _ -> valid_start oversized);
+      Invalid_Deck (fun _ -> assert_valid_start oversized);
     raise_exn_test "deck with one card is an invalid starting deck"
-      Invalid_Deck (fun _ -> valid_start one_card_deck);
+      Invalid_Deck (fun _ -> assert_valid_start one_card_deck);
     valid_start_test "A full unshuffled deck with 52 cards is valid."
       start_deck;
     valid_start_test "A full shuffled deck with 52 cards is valid"
@@ -176,8 +192,59 @@ let table_tests =
       Invalid_Deck (fun _ -> new_card empty_table);
   ]
 
+(****************************************************************)
+(* Hand Ranking *)
+(****************************************************************)
+let high_card1 =
+  [
+    init_card Spades 2;
+    init_card Diamonds 3;
+    init_card Hearts 4;
+    init_card Spades 8;
+    init_card Spades 11;
+  ]
+
+let high_card2 =
+  [
+    init_card Hearts 2;
+    init_card Diamonds 4;
+    init_card Diamonds 8;
+    init_card Spades 12;
+    init_card Clubs 13;
+  ]
+
+let pair1 =
+  [
+    init_card Hearts 10;
+    init_card Spades 10;
+    init_card Hearts 4;
+    init_card Hearts 12;
+    init_card Clubs 13;
+  ]
+
+let pair2 =
+  [
+    init_card Diamonds 14;
+    init_card Hearts 14;
+    init_card Diamonds 4;
+    init_card Spades 8;
+    init_card Clubs 9;
+  ]
+
+let compare_hands_test name hand1 hand2 expected =
+  name >:: fun _ -> assert_equal expected (compare_hands hand1 hand2)
+
+let hand_rank_tests =
+  [
+    compare_hands_test "identical hands" high_card1 high_card1 0;
+    compare_hands_test "hand vs. higher hand" high_card1 high_card2 (-1);
+    compare_hands_test "pair vs. high card" pair1 high_card2 1;
+    compare_hands_test "higher pair vs. pair" pair2 pair1 1;
+  ]
+
 let suite =
   "test suite for MS1"
-  >::: List.flatten [ player_tests; card_mod_tests; table_tests ]
+  >::: List.flatten
+         [ player_tests; card_mod_tests; table_tests; hand_rank_tests ]
 
 let _ = run_test_tt_main suite

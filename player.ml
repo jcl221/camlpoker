@@ -22,7 +22,7 @@ let player_init chips table name =
     stack = chips;
     last_decision = None;
     folded = false;
-    is_AI = (if name = "AI" then true else false);
+    is_AI = (if name = "Dummy" then true else false);
   }
 
 let string_of_hand player =
@@ -30,7 +30,7 @@ let string_of_hand player =
   | c1, c2 ->
       let c1_string = Card.string_of_card c1 in
       let c2_string = Card.string_of_card c2 in
-      "{| " ^ c1_string ^ ", " ^ c2_string ^ " |}"
+      "( " ^ c1_string ^ ", " ^ c2_string ^ " )"
 
 let player_info p =
   "Name: " ^ p.name ^ " (Chips: " ^ string_of_int p.stack ^ ")"

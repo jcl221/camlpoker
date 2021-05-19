@@ -7,7 +7,7 @@
 
     RI: * [players] contains < 6 people. 
         * [active_bet] and [pot] are nonnegative. *)
-type state = {
+type t = {
   players : Player.player list;
   table : Table.table;
   active_bet : int;
@@ -84,7 +84,7 @@ let rec print_players main_user = function
       let profile = Player.player_info h in
       let cards =
         if h.folded then "Folded"
-        else if h.name <> main_user then "Hidden"
+          (* else if h.name <> main_user then "Hidden" *)
         else Player.string_of_hand h
       in
       print_endline (profile ^ ": " ^ cards);
@@ -297,7 +297,7 @@ let rec combnk k lst =
 
 (** [every_hand pl st] is all the possible 5 hand combinations for player [pl] in
     state [st]. *)
-let every_hand (pl : Player.player) (st : state) =
+let every_hand (pl : Player.player) st =
   let pl_two_cards = [ fst pl.hand; snd pl.hand ] in
   let table = st.table in
   match table.board with
@@ -355,12 +355,12 @@ let better_hand hand1 hand2 =
     else first1 > first2
   else fst h1 > fst h2
 
-(** [compare_hands h1 h2] is 1 if h1 is better than h2, -1 if it is worse, and
-    0 if the hands are tied*)
+(** [compare_hands h1 h2] is [1] if [h1] is a better hand than [h2], 
+    [-1] if it is worse, and 0 if the hands are tied. *)
 let compare_hands h1 h2 =
   try
     if better_hand (best_hand h1) (best_hand h2) then 1
-    else if better_hand (best_hand h2) (best_hand h2) then -1
+    else if better_hand (best_hand h2) (best_hand h1) then -1
     else 0
   with Tie -> 0
 
@@ -373,7 +373,7 @@ let best_player_hand pl st =
 
 (** [player_with_best_hand st] is a list of players with the best hand of all the
     players in state [st]. *)
-let player_with_best_hand (st : state) =
+let player_with_best_hand st =
   let players = st.players in
 
   let rec find_best_player (pls : Player.player list) acc =
@@ -394,12 +394,13 @@ let player_with_best_hand (st : state) =
   in
   find_best_player players []
 
-let showdown (st : state) =
+let showdown st =
   let winning_ids =
     List.map
       (fun (x : Player.player) -> x.name)
       (player_with_best_hand st)
   in
+  List.iter (fun id -> print_endline (id ^ " wins!")) winning_ids;
   let num_winners = List.length winning_ids in
   let players = st.players in
 
@@ -425,6 +426,31 @@ let showdown (st : state) =
     pot = 0;
   }
 
-let player_hand (player : Player.player) = (player.name, player.hand)
+let player_hands st =
+  let player_hand (p : Player.player) = (p.name, p.hand) in
+  List.map player_hand st.players
 
-let player_hands st = List.map player_hand st.players
+(** [restart winners st] is the new game state after resetting the game for 
+    a new match from state [st]. A reset includes distributing the pot
+    equally amongst players listed in [winners], clearing the 
+    current table, and redealing hands to all players. *)
+let restart winners st =
+  let new_table = Table.init_table () in
+  let winnings = st.pot / List.length winners in
+  let reset (p : Player.player) =
+    let chips =
+      if List.mem p.name winners then p.stack + winnings else p.stack
+    in
+    Player.player_init chips new_table p.name
+  in
+  let next_lobby = List.map reset st.players in
+  { players = next_lobby; table = new_table; active_bet = 0; pot = 0 }
+
+(** [last_standing st] is the game state for a new match if all but one 
+    player in current state [st] has folded. Otherwise, the current 
+    state is returned unchanged. *)
+let last_standing st =
+  match ready_players st with
+  | [] -> failwith "impossible"
+  | [ _ ] as winners -> restart winners st
+  | _ :: _ -> st

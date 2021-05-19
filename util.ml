@@ -8,8 +8,8 @@ let string_of_list string_of_elt lst =
       | [ h ] -> acc ^ string_of_elt h
       | h1 :: (h2 :: t as t') ->
           if n = 100 then acc ^ "..." (* stop printing long list *)
-          else loop (n + 1) (acc ^ string_of_elt h1 ^ "; ") t'
+          else loop (n + 1) (acc ^ string_of_elt h1 ^ ", ") t'
     in
     loop 0 "" lst
   in
-  "[" ^ pp_elts lst ^ "]"
+  "{| " ^ pp_elts lst ^ " |}"
