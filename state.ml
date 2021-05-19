@@ -429,3 +429,28 @@ let showdown st =
 let player_hands st =
   let player_hand (p : Player.player) = (p.name, p.hand) in
   List.map player_hand st.players
+
+(** [restart winners st] is the new game state after resetting the game for 
+    a new match from state [st]. A reset includes distributing the pot
+    equally amongst players listed in [winners], clearing the 
+    current table, and redealing hands to all players. *)
+let restart winners st =
+  let new_table = Table.init_table () in
+  let winnings = st.pot / List.length winners in
+  let reset (p : Player.player) =
+    let chips =
+      if List.mem p.name winners then p.stack + winnings else p.stack
+    in
+    Player.player_init chips new_table p.name
+  in
+  let next_lobby = List.map reset st.players in
+  { players = next_lobby; table = new_table; active_bet = 0; pot = 0 }
+
+(** [last_standing st] is the game state for a new match if all but one 
+    player in current state [st] has folded. Otherwise, the current 
+    state is returned unchanged. *)
+let last_standing st =
+  match ready_players st with
+  | [] -> failwith "impossible"
+  | [ _ ] as winners -> restart winners st
+  | _ :: _ -> st

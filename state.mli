@@ -46,7 +46,7 @@ val ready_players : t -> string list
     with name [main_user] is obscured. *)
 val print_state : t -> string -> unit
 
-(** [showdown st] is the new state [st] after all active
+(** [showdown st] is the new state from [st] after all active
     players reveal their hands and a winner is determined. The amount in the
     pot goes to the winning player and except for the players, the state is
     returned to its initial state.*)
