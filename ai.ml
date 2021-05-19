@@ -257,26 +257,117 @@ let hand_strength hand board deck =
   let current_rank = rank (hand @ board) in
   let poss_opp = combnk 2 deck in
   let (ahead, tied, behind) = 
-    let rec strength_help our_rank opp board ahead tied behind =
+    let rec strength_help ai_rank opp board ahead tied behind =
       match opp with
       | [] -> (ahead, tied, behind)
       | h :: t ->
         let opp_rank = rank (h @ board) in
-        if (our_rank > opp_rank)
-          then strength_help our_rank t board (ahead +. 1.0) tied behind
-        else if (our_rank = opp_rank)
-          then strength_help our_rank t board ahead (tied +. 1.0) behind
+        if (ai_rank > opp_rank)
+          then strength_help ai_rank t board (ahead +. 1.0) tied behind
+        else if (ai_rank = opp_rank)
+          then strength_help ai_rank t board ahead (tied +. 1.0) behind
         else
-          strength_help our_rank t board ahead tied (behind +. 1.0)
+          strength_help ai_rank t board ahead tied (behind +. 1.0)
     in strength_help current_rank poss_opp board 1.0 1.0 1.0
   in (ahead +. (tied /. 2.0)) /. (ahead +. tied +. behind)
 
-(** [hand_potential hand board deck] is a tuple, the first element representing
+(** Types x and current are used as helpers in the hand_potential function. *)
+type x = {
+  ahead : float;
+  tied : float;
+  behind : float
+}
+type current = {
+  ahead_curr : x;
+  tied_curr : x;
+  behind_curr : x
+}
+
+(** [hand_potential ai_hand board deck] is a tuple, the first element representing
     the positive potential for the bot in the hand the second element
     representing the negative potential in the hand. *)
-
-
-
-
+let hand_potential ai_hand board deck table =
+  let ai_rank = rank (ai_hand @ board) in
+  let opp_cards = combnk 2 deck in
+  let hp_init_help = {ahead = 1.0; tied = 1.0; behind = 1.0} in
+  let init_hp = {
+    ahead_curr = hp_init_help;
+    tied_curr = hp_init_help;
+    behind_curr = hp_init_help
+  } in
+  let (total_hp, hp) =
+    let rec hp_help1 ai_hand ai_rank opp_cards board deck total_hp hp =
+      match opp_cards with
+      | [] -> (total_hp, hp)
+      | h :: t -> begin
+        let opp_rank = rank (h @ board) in
+        let new_total_hp =
+          if (ai_rank > opp_rank)
+            then {total_hp with ahead = (total_hp.ahead +. 1.0)}
+          else if (ai_rank = opp_rank)
+            then {total_hp with tied = (total_hp.tied +. 1.0)}
+          else
+            {total_hp with behind = (total_hp.behind +. 1.0)}
+        in
+        let now =
+          if (ai_rank > opp_rank) then 0
+          else if (ai_rank = opp_rank) then 1
+          else 2
+        in
+        let board_combinations = remaining_boards table in
+        let new_hand_pot =
+          let rec hp_help2 ai_hand opp_cards board total_hp hp board_combos index =
+            match board_combos with
+            | [] -> hp
+            | combo1 :: t' ->
+              let board1 = board @ combo1 in
+              let ai_best = rank (ai_hand @ board1) in
+              let opp_best = rank (opp_cards @ board1) in
+              let new_hand_pot' =
+                if now = 0 then
+                  if (ai_best > opp_best)
+                    then {hp with ahead_curr = ({hp.ahead_curr
+                    with ahead = (hp.ahead_curr.ahead +. 1.0)})}
+                  else if (ai_best = opp_best)
+                    then {hp with ahead_curr = ({hp.ahead_curr
+                    with tied = (hp.ahead_curr.tied +. 1.0)})}
+                  else
+                    {hp with ahead_curr = ({hp.ahead_curr
+                    with behind = (hp.ahead_curr.behind +. 1.0)})}
+                else if now = 1 then
+                  if (ai_best > opp_best)
+                    then {hp with tied_curr = ({hp.tied_curr
+                    with ahead = (hp.tied_curr.ahead +. 1.0)})}
+                  else if (ai_best = opp_best)
+                    then {hp with tied_curr = ({hp.tied_curr
+                    with tied = (hp.tied_curr.tied +. 1.0)})}
+                  else
+                    {hp with tied_curr = ({hp.tied_curr
+                    with behind = (hp.tied_curr.behind +. 1.0)})}
+                else
+                  if (ai_best > opp_best)
+                    then {hp with behind_curr = ({hp.behind_curr
+                    with ahead = (hp.behind_curr.ahead +. 1.0)})}
+                  else if (ai_best = opp_best)
+                    then {hp with behind_curr = ({hp.behind_curr
+                    with tied = (hp.behind_curr.tied +. 1.0)})}
+                  else
+                    {hp with behind_curr = ({hp.behind_curr
+                    with behind = (hp.behind_curr.behind +. 1.0)})}
+              in
+              hp_help2 ai_hand opp_cards board total_hp new_hand_pot' t' now
+            in
+          hp_help2 ai_hand h board total_hp hp board_combinations now
+        in
+        hp_help1 ai_hand ai_rank t board deck new_total_hp new_hand_pot
+      end
+      in
+      hp_help1 ai_hand ai_rank opp_cards board deck hp_init_help init_hp
+    in
+    let pos_potential = (hp.behind_curr.ahead +. (hp.behind_curr.tied /. 2.0)
+      +. (hp.tied_curr.ahead /. 2.0)) /. (total_hp.behind +. total_hp.tied) in
+    let neg_potential = (hp.ahead_curr.behind +. (hp.tied_curr.behind /. 2.0)
+      +. (hp.ahead_curr.tied /. 2.0)) /. (total_hp.ahead +. total_hp.tied) in
+    (pos_potential, neg_potential)
 
 let command st = failwith "Unimplemented"
