@@ -171,10 +171,10 @@ let table_tests =
     deck_size_test "shuffling preserves deck size" shuffled_deck 52;
     full_deck_test "shuffling preserves elements of a deck"
       shuffled_deck;
-    raise_exn_test "oversized deck is an invalid starting deck"
-      Invalid_Deck (fun _ -> assert_valid_start oversized);
-    raise_exn_test "deck with one card is an invalid starting deck"
-      Invalid_Deck (fun _ -> assert_valid_start one_card_deck);
+    (*raise_exn_test "oversized deck is an invalid starting deck"
+        Invalid_Deck (fun _ -> assert_valid_start oversized);
+      raise_exn_test "deck with one card is an invalid starting deck"
+        Invalid_Deck (fun _ -> assert_valid_start one_card_deck);*)
   ]
 
 (****************************************************************)
