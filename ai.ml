@@ -371,4 +371,86 @@ let hand_potential ai_hand board deck table =
       +. (hp.ahead_curr.tied /. 2.0)) /. (total_hp.ahead +. total_hp.tied) in
     (pos_potential, neg_potential)
 
+(** [ehs ai_hand board deck] is the effective hand strength of the hand
+    given the board and deck, using the algorithm created above. *)
+let ehs ai_hand board deck table =
+  let hs = hand_strength ai_hand board deck in
+  let (pPot, nPot) = hand_potential ai_hand board deck table in
+  hs *. (1. -. nPot) +. (1. -. hs) *. pPot
+
+(** [easy_bot st] is the command of the easy ai. *)
+let easy_bot st =
+  let random = Random.int 10 in
+  if st.active_bet = 0
+    then if random < 5
+      then Check else Bet 10
+  else
+    if random < 5
+      then Fold else Call
+
+(** [conservative st] is the conservative command of the hard ai. *)
+let conservative st =
+  let random = Random.int 10 in
+  if st.active_bet = 0
+    then Check
+  else
+    if random < 3
+      then Fold else Call
+
+(** [aggressive st ai] is the aggressive command of the hard ai,
+    given the state and player [ai]. *)
+let aggressive st ai =
+  let random = Random.int 10 in
+  let half_pot = st.pot / 2 in
+  let bet_unit = if half_pot > ai.stack then ai.stack else half_pot in
+  let raise_unit = if bet_unit + st.active_bet > ai.stack
+    then ai.stack - st.active_bet else bet_unit in
+  if st.active_bet = 0
+    then if random < 3
+      then Check else Bet bet_unit
+  else
+    if random < 3
+      then Call else Raise raise_unit
+
+(** [basic st] is the basic move for the ai: check or call. *)
+let basic st =
+  if st.active_bet = 0 then Check else Call
+
+(** sublist algorithm taken from stack exchange:
+    https://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml. *)
+let sublist lst =
+  let rec sublist b e l = 
+    match l with
+      [] -> failwith "sublist"
+    | h :: t -> 
+        let tail = if e=0 then [] else sublist (b-1) (e-1) t in
+        if b>0 then tail else h :: tail
+  in
+  sublist 0 (List.length lst / 10) lst
+
+let rec get_first_bot pls =
+  match pls with
+  | [] -> failwith "Impossible"
+  | h :: t -> if h.is_AI then h else get_first_bot t
+
+let option_to_lst opt =
+  match opt with
+  | None -> []
+  | Some x -> x
+
+let tuple_to_lst tup =
+  match tup with
+  | (a1, a2) -> [a1; a2]
+
+let hard_bot st =
+  let ai = get_first_bot st.players in
+  let ai_hand = tuple_to_lst (ai.hand) in
+  let table = st.table in
+  let board = option_to_lst (table.board) in
+  let deck = sublist (table.deck) in
+  let ehs = ehs ai_hand board deck table in
+  if ehs < 0.2 then conservative st
+  else if ehs > 0.7 then aggressive st ai
+  else basic st
+
 let command st = failwith "Unimplemented"
