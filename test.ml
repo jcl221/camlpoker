@@ -22,7 +22,7 @@ let player1 =
   {
     name = "p1";
     hand = hand1;
-    stack = 0;
+    stack = 200;
     last_decision = None;
     folded = false;
     is_AI = false;
@@ -35,7 +35,7 @@ let player2 =
     stack = 0;
     last_decision = None;
     folded = false;
-    is_AI = false;
+    is_AI = true;
   }
 
 let player_string_help test_name player expected =
@@ -129,7 +129,6 @@ let raise_exn_test name exn f = name >:: fun _ -> assert_raises exn f
 (** [valid_start_test name deck] is the OUnit test named [name],
     asserting the equality of [deck] and [valid_start deck]. *)
 
-(*
 let valid_start_test name deck =
   name >:: fun _ -> assert_equal deck (assert_valid_start deck)
 
@@ -191,7 +190,7 @@ let table_tests =
     raise_exn_test
       "drawing a card from table with empty deck raises Invalid_Deck"
       Invalid_Deck (fun _ -> new_card empty_table);
-  ] *)
+  ]
 
 (****************************************************************)
 (* Hand Ranking *)
@@ -246,10 +245,6 @@ let hand_rank_tests =
 let suite =
   "test suite for MS1"
   >::: List.flatten
-         [
-           player_tests;
-           card_mod_tests (*; table_tests *);
-           hand_rank_tests;
-         ]
+         [ player_tests; card_mod_tests; table_tests; hand_rank_tests ]
 
 let _ = run_test_tt_main suite
