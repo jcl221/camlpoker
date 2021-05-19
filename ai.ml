@@ -428,20 +428,24 @@ let sublist lst =
   in
   sublist 0 (List.length lst / 10) lst
 
+(** [get_first_bot pls] is the first bot in the player list [pls]. *)
 let rec get_first_bot pls =
   match pls with
   | [] -> failwith "Impossible"
   | h :: t -> if h.is_AI then h else get_first_bot t
 
+(** [option_to_lst opt] is the list form of a list option [opt]. *)
 let option_to_lst opt =
   match opt with
   | None -> []
   | Some x -> x
 
+(** [tuple_to_lst tup] is the list form of a tuple pair [tup]. *)
 let tuple_to_lst tup =
   match tup with
   | (a1, a2) -> [a1; a2]
 
+(** [hard_bot st] is the command of the hard ai bot given state [st]. *)
 let hard_bot st =
   let ai = get_first_bot st.players in
   let ai_hand = tuple_to_lst (ai.hand) in
@@ -453,4 +457,5 @@ let hard_bot st =
   else if ehs > 0.7 then aggressive st ai
   else basic st
 
+(** [command st] is the command given by the bot given state [st]. *)
 let command st = failwith "Unimplemented"
