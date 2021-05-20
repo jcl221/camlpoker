@@ -119,7 +119,11 @@ let main () =
   ANSITerminal.print_string [ ANSITerminal.green ]
     "\n\nWelcome to CamlPoker.\n";
   let user_id = prompt "Please enter a player id:" in
-  let difficulty = prompt "Would you like an easy or hard opponent?" in
+  let difficulty =
+    prompt
+      "Would you like an easy or hard opponent? (Please enter 'easy' \
+       or 'hard')"
+  in
   let state = State.init_state [ user_id; "Dummy" ] in
   { state with ai_difficulty = difficulty } |> game_loop user_id
 
