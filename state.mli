@@ -4,6 +4,7 @@ type t = {
   table : Table.table;
   active_bet : int;
   pot : int;
+  ai_difficulty : string;
 }
 
 type stage =

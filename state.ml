@@ -12,6 +12,7 @@ type t = {
   table : Table.table;
   active_bet : int;
   pot : int;
+  ai_difficulty : string;
 }
 
 type stage =
@@ -30,6 +31,7 @@ let init_state ids =
     active_bet = 0;
     table = starting_table;
     pot = 0;
+    ai_difficulty = "easy";
   }
 
 let stage_of_game st =
@@ -93,7 +95,8 @@ let reset winners st =
     Player.player_init chips new_table p.name
   in
   let next_lobby = List.map reset st.players in
-  { players = next_lobby; table = new_table; active_bet = 0; pot = 0 }
+  { players = next_lobby; table = new_table; active_bet = 0; pot = 0;
+    ai_difficulty = st.ai_difficulty;}
 
 let if_no_wagers st =
   match active_players st with
