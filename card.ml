@@ -4,9 +4,8 @@ type suit =
   | Spades
   | Clubs
 
-(** AF: The record {suit ; rank} is a card of suit [suit] and
-    rank [rank]. 
-    RI: The value bound to rank must be in the range 2..14. *)
+(** AF: The record {suit ; rank} is a card of suit [suit] and rank
+    [rank]. RI: The value bound to rank must be in the range 2..14. *)
 type t = {
   suit : suit;
   rank : int;
@@ -25,7 +24,7 @@ let string_of_card card =
     | 11 -> "J"
     | 12 -> "Q"
     | 13 -> "K"
-    | x -> string_of_int x
+    | x -> if x <> 10 then string_of_int x ^ " " else string_of_int x
   in
   let s =
     match card.suit with
@@ -36,10 +35,10 @@ let string_of_card card =
   in
 
   (*r ^ " of " ^ s *)
-  (*"\n----\n|   |\n|   |\n----"*)
-  (*"\n......\n.    .\n.    .\n.    .\n......"*)
-  "\n......\n|" ^ s ^ "   |\n| " ^ r ^ "  |\n|   " ^ s ^ "|\n......"
+  (*"\n----\n| |\n| |\n----"*)
+  (*"\n......\n. .\n. .\n. .\n......"*)
+  "\n......\n|" ^ s ^ "   |\n| " ^ r ^ " |\n|   " ^ s ^ "|\n......"
 
 (*"♥" "♦" "♠" "♣"*)
 
-(*"****\n*  *\n*  *\n*  *"*)
+(*"****\n* *\n* *\n* *"*)
