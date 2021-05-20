@@ -20,10 +20,10 @@ let get_rank card = card.rank
 let string_of_card card =
   let r =
     match card.rank with
-    | 14 -> "A"
-    | 11 -> "J"
-    | 12 -> "Q"
-    | 13 -> "K"
+    | 14 -> "A" ^ " "
+    | 11 -> "J" ^ " "
+    | 12 -> "Q" ^ " "
+    | 13 -> "K" ^ " "
     | x -> if x <> 10 then string_of_int x ^ " " else string_of_int x
   in
   let s =
@@ -33,12 +33,4 @@ let string_of_card card =
     | Spades -> "♠"
     | Clubs -> "♣"
   in
-
-  (*r ^ " of " ^ s *)
-  (*"\n----\n| |\n| |\n----"*)
-  (*"\n......\n. .\n. .\n. .\n......"*)
   "\n......\n|" ^ s ^ "   |\n| " ^ r ^ " |\n|   " ^ s ^ "|\n......"
-
-(*"♥" "♦" "♠" "♣"*)
-
-(*"****\n* *\n* *\n* *"*)
