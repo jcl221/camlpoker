@@ -33,9 +33,10 @@ val deal_center : int -> t -> t
 (** [fold id st] is the new state [st] after player with id [id] folds. *)
 val fold : string -> t -> t
 
-(** [bet id amt st] is the new state [st] after player
-    with id [id] decides to place a bet of amount [amt]. *)
-val bet : string -> int -> t -> t
+(** [bet (id, current_bet) raise_to st] is the new state [st] after player
+    with id [id] and a current bet of [current_bet] in the current 
+    betting round decides to raise the active bet to amount [raise_to]. *)
+val bet : string * int -> int -> t -> t
 
 (** [reset winners st] is the new game state after resetting the game for 
     a new match from state [st]. A reset includes distributing the pot

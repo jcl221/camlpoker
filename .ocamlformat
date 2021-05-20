@@ -3,4 +3,6 @@ break-fun-decl = fit-or-vertical
 doc-comments = before
 exp-grouping = preserve
 margin = 72
-type-decl=sparse
+parse-docstrings = true
+type-decl = sparse
+wrap-comments = true
