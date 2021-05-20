@@ -1,14 +1,14 @@
-(** AF: {players; table; active_bet; pot} 
-    is the game state with 
-      * players listed in [players],
-      * an active bet amount of [active_bet],
-      * a table (with deck and community cards) [table],
-      * a pot of amount [pot], 
+open Player
 
-    RI: * [players] contains < 6 people. 
-        * [active_bet] and [pot] are nonnegative. *)
+(** AF: {players; table; active_bet; pot} is the game state with *
+    players listed in [players], * an active bet amount of [active_bet],
+    * a table (with deck and community cards) [table], * a pot of amount
+    [pot],
+
+    RI: * [players] contains < 6 people. * [active_bet] and [pot] are
+    nonnegative. *)
 type t = {
-  players : Player.player list;
+  players : player list;
   table : Table.table;
   active_bet : int;
   pot : int;
@@ -27,7 +27,7 @@ exception Tie
 let init_state ids =
   let starting_table = Table.init_table () in
   {
-    players = List.map (Player.player_init 200 starting_table) ids;
+    players = List.map (player_init 200 starting_table) ids;
     active_bet = 0;
     table = starting_table;
     pot = 0;
@@ -41,8 +41,8 @@ let stage_of_game st =
 
 let active_players st =
   st.players
-  |> List.filter (fun (p : Player.player) -> not p.folded)
-  |> List.map (fun (p : Player.player) -> p.name)
+  |> List.filter (fun (p : player) -> not p.folded)
+  |> List.map (fun (p : player) -> p.name)
 
 let active_bet st = st.active_bet
 
@@ -53,7 +53,7 @@ let rec deal_center count st =
   if count <= 1 then st' else deal_center (count - 1) st'
 
 let get_player id st =
-  let rec get_player_from_lst (lst : Player.player list) id =
+  let rec get_player_from_lst (lst : player list) id =
     match lst with
     | h :: t -> if h.name = id then h else get_player_from_lst t id
     | [] -> raise (Failure "Not Found")
@@ -61,28 +61,28 @@ let get_player id st =
   get_player_from_lst st.players id
 
 let fold id st =
-  let survey (p : Player.player) =
+  let survey (p : player) =
     if p.name = id then { p with folded = true } else p
   in
   let updated_players = List.map survey st.players in
   { st with players = updated_players }
 
-let bet id amt st =
-  let amt_f = min amt (get_player id st).stack in
-  let survey (p : Player.player) =
-    if p.name = id then { p with stack = p.stack - amt_f } else p
+let bet (id, current_bet) raise_to st =
+  let amt = raise_to - current_bet in
+  let scan (p : player) =
+    if p.name = id then { p with stack = p.stack - amt } else p
   in
-  let updated_players = List.map survey st.players in
+  let updated_players = List.map scan st.players in
   {
     st with
     players = updated_players;
-    active_bet = amt_f;
-    pot = st.pot + amt_f;
+    active_bet = raise_to;
+    pot = st.pot + amt;
   }
 
-(** [restart winners st] is the new game state after resetting the game for 
-    a new match from state [st]. A reset includes distributing the pot
-    equally amongst players listed in [winners], clearing the 
+(** [restart winners st] is the new game state after resetting the game
+    for a new match from state [st]. A reset includes distributing the
+    pot equally amongst players listed in [winners], clearing the
     current table, and redealing hands to all players. *)
 let reset winners st =
   List.iter (fun name -> print_endline (name ^ " wins!")) winners;
@@ -95,8 +95,13 @@ let reset winners st =
     Player.player_init chips new_table p.name
   in
   let next_lobby = List.map reset st.players in
-  { players = next_lobby; table = new_table; active_bet = 0; pot = 0;
-    ai_difficulty = st.ai_difficulty;}
+  {
+    players = next_lobby;
+    table = new_table;
+    active_bet = 0;
+    pot = 0;
+    ai_difficulty = st.ai_difficulty;
+  }
 
 let if_no_wagers st =
   match active_players st with
@@ -131,8 +136,8 @@ let print_state st main_user =
 let compare_cards (c1 : Card.t) (c2 : Card.t) =
   if c1.rank > c2.rank then 1 else if c1.rank < c2.rank then -1 else 0
 
-(** [ranks_lst hand] is a sorted list of the ranks of the cards
-    in [hand].*)
+(** [ranks_lst hand] is a sorted list of the ranks of the cards in
+    [hand].*)
 let ranks_lst hand =
   let sorted = List.sort compare_cards hand in
   List.map (fun (x : Card.t) -> x.rank) sorted
@@ -147,15 +152,15 @@ let highest_rank hand =
   | [ _; _; _; _; r5 ] -> r5
   | _ -> raise (Invalid_argument "hand is not a valid input")
 
-(** [high_card hand] is a tuple option with 1 and the list of ranks sorted in
-    descending order*)
+(** [high_card hand] is a tuple option with 1 and the list of ranks
+    sorted in descending order*)
 let high_card hand =
   let desc_ranks = List.rev (ranks_lst hand) in
   Some (1, desc_ranks)
 
-(** [four_of_a_kind hand] is a tuple option with 8 and the list of ranks with
-    the four similar cards at the front and the different one at the
-    end. If there is no four of a kind, it is None*)
+(** [four_of_a_kind hand] is a tuple option with 8 and the list of ranks
+    with the four similar cards at the front and the different one at
+    the end. If there is no four of a kind, it is None*)
 let four_of_a_kind hand =
   let ranks = ranks_lst hand in
   match ranks with
@@ -167,9 +172,10 @@ let four_of_a_kind hand =
       else None
   | _ -> raise (Invalid_argument "hand is invalid")
 
-(** [three_of_a_kind hand] is a tuple option with 4 and the list of ranks with
-    the three similar cards at the front and the two different ones at the
-    end in descending order. If there is no three of a kind, it is None*)
+(** [three_of_a_kind hand] is a tuple option with 4 and the list of
+    ranks with the three similar cards at the front and the two
+    different ones at the end in descending order. If there is no three
+    of a kind, it is None*)
 let three_of_a_kind hand =
   let ranks = ranks_lst hand in
   match ranks with
@@ -181,7 +187,8 @@ let three_of_a_kind hand =
   | _ -> raise (Invalid_argument "hand is invalid")
 
 (** [straight hand] is a tuple option with 5 and the list of ranks in
-    descending order if the hand is a straight. If it is not, then it is None*)
+    descending order if the hand is a straight. If it is not, then it is
+    None*)
 let straight hand =
   let ranks = ranks_lst hand in
   match ranks with
@@ -194,7 +201,8 @@ let straight hand =
   | _ -> raise (Invalid_argument "hand is invalid")
 
 (** [flush hand] is a tuple option with 6 and the list of ranks in
-    descending order if the hand is a flush. If it is not, then it is None*)
+    descending order if the hand is a flush. If it is not, then it is
+    None*)
 let flush hand =
   let suits = suits_lst hand in
   match suits with
@@ -205,8 +213,8 @@ let flush hand =
   | _ -> raise (Invalid_argument "hand is invalid")
 
 (** [straight_flush hand] is a tuple option with 9 and the list of ranks
-    in descending order if the hand is a straight flush. If it is not, then it
-    is None*)
+    in descending order if the hand is a straight flush. If it is not,
+    then it is None*)
 let straight_flush hand =
   if straight hand != None && flush hand != None then
     Some (9, List.rev (ranks_lst hand))
@@ -222,9 +230,9 @@ let royal_flush hand =
   then Some (10, List.rev (ranks_lst hand))
   else None
 
-(** [full_house hand] is a tuple option with 7 and the list of ranks with
-    the three of a kind in the front and the pair in the back. If no full
-    house, then it is None*)
+(** [full_house hand] is a tuple option with 7 and the list of ranks
+    with the three of a kind in the front and the pair in the back. If
+    no full house, then it is None*)
 let full_house hand =
   let ranks = ranks_lst hand in
   match ranks with
@@ -252,8 +260,8 @@ let rec highest_pair ranks acc =
       if List.mem h t then highest_pair t h else highest_pair t acc
 
 (** [pair_helper rank ranks] is a list with the same elements as ranks
-    with the pair of rank [rank] at the leftmost part of the list and the
-    remaining elements following in descending order*)
+    with the pair of rank [rank] at the leftmost part of the list and
+    the remaining elements following in descending order*)
 let pair_helper rank ranks =
   let first_two = [ rank; rank ] in
   let not_paired_ranks =
@@ -285,16 +293,16 @@ let rec same_rank_list ranks acc =
       else same_rank_list t acc
 
 (** [two_pair_help values ranks] is the list of ranks in ranks with the
-    pairs at the leftmost of the list in descending order and the different
-    caard at the end*)
+    pairs at the leftmost of the list in descending order and the
+    different caard at the end*)
 let two_pair_help values ranks =
   let first_four = List.rev (List.sort compare values) in
   first_four
   @ List.filter (fun x -> List.mem x first_four = false) ranks
 
 (** [two_pair hand] is a tuple option with 3 and a list of ranks so that
-    the pairs are on the left in descending order. If there is no two pair,
-    then it is None. *)
+    the pairs are on the left in descending order. If there is no two
+    pair, then it is None. *)
 let two_pair hand =
   let ranks = ranks_lst hand in
   if
@@ -308,8 +316,8 @@ let two_pair hand =
     let list_of_hand = two_pair_help values ranks in
     if num_of_pairs = 2 then Some (3, list_of_hand) else None
 
-(** [combnk k lst] is all combinations of length k in list [lst]. Credit for
-    the algorithm and implementation is given to 
+(** [combnk k lst] is all combinations of length k in list [lst]. Credit
+    for the algorithm and implementation is given to
     https://codereview.stackexchange.com/questions/40366/combinations-of-size-k-from-a-list-in-ocaml*)
 let rec combnk k lst =
   if k = 0 then [ [] ]
@@ -321,8 +329,8 @@ let rec combnk k lst =
     in
     List.concat (combnk_help lst)
 
-(** [every_hand pl st] is all the possible 5 hand combinations for player [pl] in
-    state [st]. *)
+(** [every_hand pl st] is all the possible 5 hand combinations for
+    player [pl] in state [st]. *)
 let every_hand (pl : Player.player) st =
   let pl_two_cards = [ fst pl.hand; snd pl.hand ] in
   let table = st.table in
@@ -332,7 +340,8 @@ let every_hand (pl : Player.player) st =
   | _ -> raise (Invalid_argument "table is not filled completely")
 
 (** [best_hand hand] is a tuple option with the value of best hand from
-    a given card list [hand] and the list of that hand in descending order. *)
+    a given card list [hand] and the list of that hand in descending
+    order. *)
 let best_hand hand =
   if royal_flush hand != None then royal_flush hand
   else if straight_flush hand != None then straight_flush hand
@@ -381,7 +390,7 @@ let better_hand hand1 hand2 =
     else first1 > first2
   else fst h1 > fst h2
 
-(** [compare_hands h1 h2] is [1] if [h1] is a better hand than [h2], 
+(** [compare_hands h1 h2] is [1] if [h1] is a better hand than [h2],
     [-1] if it is worse, and 0 if the hands are tied. *)
 let compare_hands h1 h2 =
   try
@@ -390,15 +399,15 @@ let compare_hands h1 h2 =
     else 0
   with Tie -> 0
 
-(** [best_player_hand pl st] is the best hand player [pl] has given her hand and
-    the board of the table in state [st]. *)
+(** [best_player_hand pl st] is the best hand player [pl] has given her
+    hand and the board of the table in state [st]. *)
 let best_player_hand pl st =
   let all_hands = every_hand pl st in
   let all_sorted_hands = List.rev (List.sort compare_hands all_hands) in
   List.nth all_sorted_hands 0
 
-(** [player_with_best_hand st] is a list of players with the best hand of all the
-    players in state [st]. *)
+(** [player_with_best_hand st] is a list of players with the best hand
+    of all the players in state [st]. *)
 let player_with_best_hand st =
   let players = st.players in
 
