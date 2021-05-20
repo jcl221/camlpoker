@@ -458,4 +458,7 @@ let hard_bot st =
   else basic st
 
 (** [command st] is the command given by the bot given state [st]. *)
-let command st = failwith "Unimplemented"
+let command st =
+  if st.ai_difficulty = "easy"
+    then easy_bot st
+  else hard_bot st
