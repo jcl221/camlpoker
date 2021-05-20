@@ -9,6 +9,7 @@ module Opponent = struct
         print_endline "call";
         Call
 end
+(** hi*)
 
 (** [prompt message] is the user input entered in response to a
     [message] printed onto stdout. *)
