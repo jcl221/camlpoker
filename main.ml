@@ -10,6 +10,50 @@ module Opponent = struct
         Call
 end
 
+(* let rec combine_list lst1 = match lst1 with [] -> [] | h :: t -> (h,
+   0) :: combine_list t
+
+   let rec all_bets_equal pls highest = match pls with | [] -> true |
+   (id, bet) :: t -> highest = bet && all_bets_equal t highest
+
+   let betting_round st = let rec betting_aux players st highest
+   num_checks = if all_bets_equal players highest || num_checks =
+   List.length (State.active_players st) then st else match players with
+   | [] -> st | (id, bet) :: t -> ( let cmd = prompt_command id st in
+   match cmd with | Bet x -> let st' = State.bet (id, bet) x st in
+   betting_aux (t @ [ (id, x) ]) st' x num_checks | Check -> let st' =
+   st in betting_aux (t @ [ (id, bet) ]) st' highest (num_checks + 1) |
+   Raise x -> let st' = State.bet (id, bet) x st in betting_aux (t @ [
+   (id, x) ]) st' (State.active_bet st') num_checks | Call -> let st' =
+   State.bet (id, bet) (State.active_bet st) st in betting_aux (t @ [
+   (id, State.active_bet st) ]) st' highest num_checks | Fold -> let st'
+   = State.fold id st in betting_aux t st' highest num_checks | _ ->
+   failwith "invalid command parsed") in betting_aux (combine_list
+   (State.active_players st)) st 1 0*)
+
+(** The queue for players pending an action during a betting round. Each
+    element of the queue stores the name of a player and their current
+    bet in the betting round. *)
+let action_queue : (string * int) Queue.t = Queue.create ()
+
+(** The queue for players that have finished performing their required
+    action during a betting round and still have stakes in the game. *)
+let finished_queue : (string * int) Queue.t = Queue.create ()
+
+(** [reset_queues] clears [action_queue] and [finished_queue]. *)
+let reset_queues () =
+  Queue.clear action_queue;
+  Queue.clear finished_queue
+
+(** [add_turns players] enqueues the players with names listed in
+    [players] onto the action queue. *)
+let add_turns players =
+  List.iter (fun name -> Queue.push (name, 0) action_queue) players
+
+(** [restore_turns ()] enqueues all of the players in [finished_queue]
+    back onto [action_queue]. *)
+let restore_turns () = Queue.transfer finished_queue action_queue
+
 (** [prompt message] is the user input entered in response to a
     [message] printed onto stdout. *)
 let prompt message =
@@ -26,7 +70,8 @@ let rec prompt_cmd_init name =
   let msg = name ^ "'s Turn: enter a command " ^ hint in
   let cmd = msg |> prompt |> Command.parse in
   match cmd with
-  | Bet _ | Check -> cmd
+  | Check -> cmd
+  | Bet amt -> cmd
   | _ ->
       print_endline ("Invalid action. " ^ hint);
       prompt_cmd_init name
@@ -53,54 +98,48 @@ let prompt_command name st =
   if State.active_bet st = 0 then prompt_cmd_init name
   else prompt_cmd_open name
 
-let rec combine_list lst1 =
-  match lst1 with [] -> [] | h :: t -> (h, 0) :: combine_list t
+(** [make_bet name current_bet raise_to st] is the next game state from
+    [st] after a player with name [name] and a bet of [current_bet] in
+    the current betting round raises their bet to [raise_to]. Updates
+    action/finished queues accordingly. *)
+let make_bet name current_bet raise_to st =
+  let active_bet = State.active_bet st in
+  assert (raise_to > current_bet && raise_to >= active_bet);
 
-let rec all_bets_equal pls highest =
-  match pls with
-  | [] -> true
-  | (id, bet) :: t -> highest = bet && all_bets_equal t highest
+  if raise_to > active_bet then restore_turns ();
+  Queue.push (name, raise_to) finished_queue;
+  State.bet (name, current_bet) raise_to st
+
+(** [turn st] is the next state from [st] all players in the action
+    queue have performed their required turns. *)
+let rec perform_turns st =
+  try
+    let name, bet = Queue.pop action_queue in
+    let cmd = prompt_command name st in
+    let st' =
+      match cmd with
+      | Bet amt -> make_bet name 0 amt st
+      | Raise amt -> make_bet name bet amt st
+      | Call -> make_bet name bet (State.active_bet st) st
+      | Fold -> State.fold name st
+      | Check ->
+          Queue.push (name, bet) finished_queue;
+          st
+      | _ -> failwith "invalid command parsed"
+    in
+    perform_turns st'
+  with Queue.Empty -> st
 
 (** [betting_round st players] is the updated state from initial state
     [st] after a betting round has occurred. Specifically, it is the
     state after all players with ids listed in [players] have performed
     an action upon being prompted to do so. *)
 let betting_round st =
-  let rec betting_aux players st highest num_checks =
-    if
-      all_bets_equal players highest
-      || num_checks = List.length (State.active_players st)
-    then st
-    else
-      match players with
-      | [] -> st
-      | (id, bet) :: t -> (
-          let cmd = prompt_command id st in
-          match cmd with
-          | Bet x ->
-              let st' = State.bet (id, bet) x st in
-              betting_aux (t @ [ (id, x) ]) st' x num_checks
-          | Check ->
-              let st' = st in
-              betting_aux
-                (t @ [ (id, bet) ])
-                st' highest (num_checks + 1)
-          | Raise x ->
-              let st' = State.bet (id, bet) x st in
-              betting_aux
-                (t @ [ (id, x) ])
-                st' (State.active_bet st') num_checks
-          | Call ->
-              let st' = State.bet (id, bet) (State.active_bet st) st in
-              betting_aux
-                (t @ [ (id, State.active_bet st) ])
-                st' highest num_checks
-          | Fold ->
-              let st' = State.fold id st in
-              betting_aux t st' highest num_checks
-          | _ -> failwith "invalid command parsed")
-  in
-  betting_aux (combine_list (State.active_players st)) st 1 0
+  reset_queues ();
+  st |> State.active_players |> add_turns;
+  perform_turns st
+
+(************************************************************************)
 
 (** [update st] is the new game state after the poker match in state
     [st] progresses through one betting round and the table is updated
@@ -119,7 +158,7 @@ let update st =
 (** [draw st player_id] draws the game state [st] onto the UI. The hands
     of every player except the main user (identified by the id
     [main_user]) are obscured. *)
-let draw main_user st = State.print_state st main_user
+let draw main_user st = State.print_state st main_user false
 
 (** [game_loop main_user st] draws the state [st] onto the UI and
     updates it accordingly for another iteration of loop. The player

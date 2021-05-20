@@ -68,6 +68,8 @@ let fold id st =
   { st with players = updated_players }
 
 let bet (id, current_bet) raise_to st =
+  assert (raise_to > current_bet && raise_to >= st.active_bet);
+
   let amt = raise_to - current_bet in
   let scan (p : player) =
     if p.name = id then { p with stack = p.stack - amt } else p
@@ -80,10 +82,6 @@ let bet (id, current_bet) raise_to st =
     pot = st.pot + amt;
   }
 
-(** [restart winners st] is the new game state after resetting the game
-    for a new match from state [st]. A reset includes distributing the
-    pot equally amongst players listed in [winners], clearing the
-    current table, and redealing hands to all players. *)
 let reset winners st =
   List.iter (fun name -> print_endline (name ^ " wins!")) winners;
   let new_table = Table.init_table () in
@@ -103,29 +101,26 @@ let reset winners st =
     ai_difficulty = st.ai_difficulty;
   }
 
-let if_no_wagers st =
-  match active_players st with
-  | [] -> failwith "impossible"
-  | [ p ] as winners -> reset winners st
-  | _ -> st
-
-let rec print_players main_user = function
+(** [print_players main_user mask lst] prints information for all
+    players in [lst] out onto stdout. If [mask] is true, obscures the
+    hands of all players except for the player with name [main_user]. *)
+let rec print_players main_user mask = function
   | [] -> print_string "\n"
   | h :: t ->
       let profile = Player.player_info h in
       let cards =
         if h.folded then "Folded"
-          (* else if h.name <> main_user then "Hidden" *)
+        else if mask && h.name <> main_user then "Hidden"
         else Player.string_of_hand h
       in
       print_endline (profile ^ ": " ^ cards);
-      print_players main_user t
+      print_players main_user mask t
 
-let print_state st main_user =
+let print_state st main_user mask =
   print_endline "\n====== Table ======";
   print_endline ("Community Cards: " ^ Table.string_of_table st.table);
   print_endline "\n====== Players =====";
-  print_players main_user st.players
+  print_players main_user mask st.players
 
 (***************************************************************************)
 (* Hand Ranking *)
