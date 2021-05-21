@@ -1,10 +1,10 @@
-(** AF: A record { name; hand; stack; last_decision; folded; is_AI } is 
-    the player at a poker table with name [name], a poker hand of [hand], 
-    an amount of chips [stack], and whose most recent action is 
-    [last_decision]. Whether the player has folded and whether they are 
-    an AI is given by [folded] and [is_AI]. 
-    
-    RI: The pair of cards in [hand] is not of the same rank and suit. 
+(** AF: A record \{ name; hand; stack; last_decision; folded; is_AI \}
+    is the player at a poker table with name [name], a poker hand of
+    [hand], an amount of chips [stack], and whose most recent action is
+    [last_decision]. Whether the player has folded and whether they are
+    an AI is given by [folded] and [is_AI].
+
+    RI: The two cards in [hand] are not of the same value and rank.
     [stack] is a nonnegative value. *)
 type player = {
   name : string;

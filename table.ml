@@ -6,16 +6,17 @@ open Card
 
 type deck = Card.t list
 
-(** AF: { deck ; board } is the table with deck [deck] and board 
-  (community cards) [board]. 
-  RI: [deck] can contain no more than 52 elements, and must not 
-  have duplicates.*)
+(** AF: \{ deck ; board \} is the table with deck [deck] and board
+    (community cards) [board].
+
+    RI: [deck] can contain no more than 52 elements, and must not have
+    duplicates.*)
 type table = {
   mutable deck : deck;
   mutable board : Card.t list option;
 }
 
-(** [int_to_suit n] is the suit to which [n] maps.  *)
+(** [int_to_suit n] is the suit to which [n] maps. *)
 let int_to_suit n =
   match n with 0 -> Hearts | 1 -> Diamonds | 2 -> Spades | _ -> Clubs
 
@@ -49,10 +50,9 @@ let assert_valid_start deck =
     done
   done
 
-(** [shuffle_help shuff current] is the deck of cards obtained by randomly 
-    shuffling the deck [current]. 
-    Requires: [current] is a valid starting deck. 
-    Efficiency: O(n^2). *)
+(** [shuffle_help shuff current] is the deck of cards obtained by
+    randomly shuffling the deck [current]. Requires: [current] is a
+    valid starting deck. Efficiency: O(n^2). *)
 let rec shuffle_help (shuffled : deck) current =
   if List.length shuffled = 52 then shuffled
   else begin
@@ -89,9 +89,9 @@ let deal_hand table =
       table.deck <- xs;
       (card1, card2)
 
-(** [string_of_list string_of_elt lst] is the string representation of [lst],
-    where each element of [lst] has the string representation determined by 
-    [string_of_elt]. *)
+(** [string_of_list string_of_elt lst] is the string representation of
+    [lst], where each element of [lst] has the string representation
+    determined by [string_of_elt]. *)
 let string_of_list string_of_elt lst =
   let pp_elts lst =
     let rec loop acc = function

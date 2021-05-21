@@ -10,6 +10,12 @@ module Opponent = struct
         Call
 end
 
+let bet_floor_err = "Your bet must be greater than 0. "
+
+let insuff_chips_err = "You don't have enough chips! "
+
+let raise_floor_err = "Your raise must be greater than the active bet. "
+
 (** The queue for players pending an action during a betting round. Each
     element of the queue stores the name of a player and their current
     bet in the betting round. *)
@@ -44,65 +50,105 @@ let prompt message =
     valid command when a betting round has just started. Returns the
     corresponding command entered if it is either [Bet] or [Check],
     otherwise re-prompts the player. *)
-let rec prompt_cmd_init name =
+let rec prompt_cmd_init name st =
   let hint = "(enter 'bet <amt>' or 'check')" in
   let cmd = hint |> prompt |> Command.parse in
   match cmd with
   | Check -> cmd
-  | Bet amt -> cmd
+  | Bet amt -> screen_bet name st amt
   | _ ->
       print_endline ("Invalid action. " ^ hint);
-      prompt_cmd_init name
+      prompt_cmd_init name st
+
+(** [screen_bet name st amt] checks if the bet amount [amt] placed by
+    player of name [name] is valid. If so, returns [Bet amt], otherwise
+    reprompts the player for a command. *)
+and screen_bet name st amt =
+  let reprompt msg =
+    print_string msg;
+    prompt_cmd_init name st
+  in
+  match amt with
+  | x when x <= 0 -> reprompt bet_floor_err
+  | x when x > State.chips name st -> reprompt insuff_chips_err
+  | _ -> Bet amt
 
 (** [prompt_cmd_open name] prompts the player with name [name] for a
     valid command after a betting round has been opened. Returns the
-    corresponding command entered if it is either [Raise], [Call], or
-    [Fold], otherwise re-prompts the player. *)
-let rec prompt_cmd_open name =
+    command entered if it is [Call], [Fold], or a valid [Raise _]
+    otherwise re-prompts the player. *)
+let rec prompt_cmd_open name st =
   let hint = "(enter 'raise <amt>', 'call', or 'fold')" in
   let cmd = hint |> prompt |> Command.parse in
   match cmd with
-  | Raise _ | Call | Fold -> cmd
+  | Raise amt -> screen_raise name st amt
+  | Call -> screen_call name st
+  | Fold -> cmd
   | _ ->
       print_endline ("Invalid action. " ^ hint);
-      prompt_cmd_open name
+      prompt_cmd_open name st
+
+(** [screen_bet name st amt] checks if the amount [amt] that was raised
+    to by the player with name [name] is valid. If so, returns
+    [Raise amt], otherwise reprompts the player for a command. *)
+and screen_raise name st amt =
+  let reprompt msg =
+    print_string msg;
+    prompt_cmd_open name st
+  in
+  match amt with
+  | x when x <= 0 -> reprompt bet_floor_err
+  | x when x > State.chips name st -> reprompt insuff_chips_err
+  | x when x <= State.active_bet st -> reprompt raise_floor_err
+  | _ -> Raise amt
+
+(** [screen_bet name st amt] checks if call made by player of name
+    [name] is valid. If so, returns [Call], otherwise reprompts the
+    player for a command. *)
+and screen_call name st =
+  let chips = State.chips name st in
+  let active_bet = State.active_bet st in
+  match chips < active_bet with
+  | false -> Call
+  | true ->
+      print_string insuff_chips_err;
+      prompt_cmd_open name st
 
 (** [dummy_cmd st] is the command for a valid poker action given by the
     AI dummy in game state [st]. *)
 let dummy_cmd st =
-  Unix.sleep 1;
   let cmd = Ai.command st in
   cmd |> Command.string_of_cmd |> print_endline;
   cmd
 
 (** [get_command name st] is the command for a valid poker action given
     by player of name [name] in game state [st]. *)
-let get_command name st =
+let get_command name bet st =
   print_string (name ^ "'s Turn: ");
 
-  let player = State.get_player name st in
-  if player.is_AI then dummy_cmd st
-  else if State.active_bet st = 0 then prompt_cmd_init name
-  else prompt_cmd_open name
+  (*let player = State.get_player name st in if player.is_AI then
+    dummy_cmd st else *)
+  if State.active_bet st = 0 then prompt_cmd_init name st
+  else prompt_cmd_open name st
 
-(** [make_bet name current_bet raise_to st] is the next game state from
-    [st] after a player with name [name] and a bet of [current_bet] in
-    the current betting round raises their bet to [raise_to]. Updates
-    action/finished queues accordingly. *)
-let make_bet name current_bet raise_to st =
+(** [make_bet name current raise_to st] is the next game state from [st]
+    after the player named [name], having already made a bet of
+    [current] in the current betting round, raises their bet to
+    [raise_to]. Updates betting-round queues accordingly. *)
+let make_bet name current raise_to st =
   let active_bet = State.active_bet st in
-  assert (raise_to > current_bet && raise_to >= active_bet);
+  assert (raise_to > current && raise_to >= active_bet);
 
   if raise_to > active_bet then restore_turns ();
   Queue.push (name, raise_to) finished_queue;
-  State.bet (name, current_bet) raise_to st
+  State.bet name current raise_to st
 
 (** [turn st] is the next state from [st] all players in the action
     queue have performed their required turns. *)
 let rec perform_turns st =
   try
     let name, bet = Queue.pop action_queue in
-    let cmd = get_command name st in
+    let cmd = get_command name bet st in
     let st' =
       match cmd with
       | Bet amt -> make_bet name 0 amt st

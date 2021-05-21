@@ -29,14 +29,14 @@ val deal_center : int -> t -> t
 (** [fold id st] is the new state [st] after player with id [id] folds. *)
 val fold : string -> t -> t
 
-(** [bet (name, current_bet) raise_to st] is the new state [st] after
-    the player named [name], having already made a bet of [current_bet]
-    in the current betting round, decides to raise the active bet to
-    amount [raise_to].
+(** [bet name current raise_to st] is the new state [st] after the
+    player named [name], having already made a bet of [current_bet] in
+    the current betting round, decides to raise the active bet to amount
+    [raise_to].
 
     Requires: There exists a player in [st] with name [name]. [raise_to]
     is > [current_bet] and >= the active bet in [st]. *)
-val bet : string * int -> int -> t -> t
+val bet : string -> int -> int -> t -> t
 
 (** [reset winners st] is the new game state after resetting the game
     for a new match from state [st]. A reset includes distributing the
@@ -69,10 +69,14 @@ val active_bet : t -> int
     stakes in the pot (have not folded) in state [st]. *)
 val active_players : t -> string list
 
-(** [get_player st id] is the active player with id [id] for game state
+(** [get_player id st] is the active player with id [id] for game state
     [st]. Raises: Not_found if there is no player with id [id] in the
     given state. *)
 val get_player : string -> t -> Player.player
+
+(** [chips name st] is the amount of chips that the player named [name]
+    has in state [st]. *)
+val chips : string -> t -> int
 
 (** [player_hands st] is a list of pairs corresponding to players still
     in the game. Each such pair contains the player's id and their hand.

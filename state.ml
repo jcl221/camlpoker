@@ -1,11 +1,11 @@
 open Player
 
-(** AF: {players; table; active_bet; pot} is the game state with *
+(** AF: \{ players; table; active_bet; pot \} is the game state with *
     players listed in [players], * an active bet amount of [active_bet],
     * a table (with deck and community cards) [table], * a pot of amount
     [pot],
 
-    RI: * [players] contains < 6 people. * [active_bet] and [pot] are
+    RI: [players] contains < 6 people. [active_bet] and [pot] are
     nonnegative. *)
 type t = {
   players : player list;
@@ -46,12 +46,6 @@ let active_players st =
 
 let active_bet st = st.active_bet
 
-let rec deal_center count st =
-  let st' =
-    { st with table = Table.place_center st.table; active_bet = 0 }
-  in
-  if count <= 1 then st' else deal_center (count - 1) st'
-
 let get_player id st =
   let rec get_player_from_lst (lst : player list) id =
     match lst with
@@ -60,6 +54,15 @@ let get_player id st =
   in
   get_player_from_lst st.players id
 
+let chips name st = (get_player name st).stack
+
+let rec deal_center count st =
+  let st' =
+    let table = Table.place_center st.table in
+    { st with table; active_bet = 0 }
+  in
+  if count <= 1 then st' else deal_center (count - 1) st'
+
 let fold id st =
   let survey (p : player) =
     if p.name = id then { p with folded = true } else p
@@ -67,10 +70,10 @@ let fold id st =
   let updated_players = List.map survey st.players in
   { st with players = updated_players }
 
-let bet (id, current_bet) raise_to st =
-  assert (raise_to > current_bet && raise_to >= st.active_bet);
+let bet id current raise_to st =
+  assert (raise_to > current && raise_to >= st.active_bet);
 
-  let amt = raise_to - current_bet in
+  let amt = raise_to - current in
   let scan (p : player) =
     if p.name = id then { p with stack = p.stack - amt } else p
   in
