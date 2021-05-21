@@ -45,9 +45,8 @@ let prompt message =
     corresponding command entered if it is either [Bet] or [Check],
     otherwise re-prompts the player. *)
 let rec prompt_cmd_init name =
-  let hint = "('bet <amt>' or 'check')" in
-  let msg = name ^ "'s Turn: enter a command " ^ hint in
-  let cmd = msg |> prompt |> Command.parse in
+  let hint = "(enter 'bet <amt>' or 'check')" in
+  let cmd = hint |> prompt |> Command.parse in
   match cmd with
   | Check -> cmd
   | Bet amt -> cmd
@@ -60,20 +59,29 @@ let rec prompt_cmd_init name =
     corresponding command entered if it is either [Raise], [Call], or
     [Fold], otherwise re-prompts the player. *)
 let rec prompt_cmd_open name =
-  let hint = "('raise <amt>', 'call', or 'fold')" in
-  let msg = name ^ "'s Turn: enter a command: " ^ hint in
-  let cmd = msg |> prompt |> Command.parse in
+  let hint = "(enter 'raise <amt>', 'call', or 'fold')" in
+  let cmd = hint |> prompt |> Command.parse in
   match cmd with
   | Raise _ | Call | Fold -> cmd
   | _ ->
       print_endline ("Invalid action. " ^ hint);
       prompt_cmd_open name
 
+(** [dummy_cmd st] is the command for a valid poker action given by the
+    AI dummy in game state [st]. *)
+let dummy_cmd st =
+  Unix.sleep 1;
+  let cmd = Ai.command st in
+  cmd |> Command.string_of_cmd |> print_endline;
+  cmd
+
 (** [get_command name st] is the command for a valid poker action given
     by player of name [name] in game state [st]. *)
 let get_command name st =
-  let is_dummy = (State.get_player name st).is_AI in
-  if is_dummy then Ai.command st
+  print_string (name ^ "'s Turn: ");
+
+  let player = State.get_player name st in
+  if player.is_AI then dummy_cmd st
   else if State.active_bet st = 0 then prompt_cmd_init name
   else prompt_cmd_open name
 
