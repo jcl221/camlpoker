@@ -10,27 +10,6 @@ module Opponent = struct
         Call
 end
 
-(* let rec combine_list lst1 = match lst1 with [] -> [] | h :: t -> (h,
-   0) :: combine_list t
-
-   let rec all_bets_equal pls highest = match pls with | [] -> true |
-   (id, bet) :: t -> highest = bet && all_bets_equal t highest
-
-   let betting_round st = let rec betting_aux players st highest
-   num_checks = if all_bets_equal players highest || num_checks =
-   List.length (State.active_players st) then st else match players with
-   | [] -> st | (id, bet) :: t -> ( let cmd = prompt_command id st in
-   match cmd with | Bet x -> let st' = State.bet (id, bet) x st in
-   betting_aux (t @ [ (id, x) ]) st' x num_checks | Check -> let st' =
-   st in betting_aux (t @ [ (id, bet) ]) st' highest (num_checks + 1) |
-   Raise x -> let st' = State.bet (id, bet) x st in betting_aux (t @ [
-   (id, x) ]) st' (State.active_bet st') num_checks | Call -> let st' =
-   State.bet (id, bet) (State.active_bet st) st in betting_aux (t @ [
-   (id, State.active_bet st) ]) st' highest num_checks | Fold -> let st'
-   = State.fold id st in betting_aux t st' highest num_checks | _ ->
-   failwith "invalid command parsed") in betting_aux (combine_list
-   (State.active_players st)) st 1 0*)
-
 (** The queue for players pending an action during a betting round. Each
     element of the queue stores the name of a player and their current
     bet in the betting round. *)
@@ -90,12 +69,12 @@ let rec prompt_cmd_open name =
       print_endline ("Invalid action. " ^ hint);
       prompt_cmd_open name
 
-(** [prompt_command id st] is the command entered into the command line
-    after prompting the player with name [name] to do so. Only accepts
-    actions appropriate to the current game state [st], re-prompting the
-    player as needed if an invalid command is given. *)
-let prompt_command name st =
-  if State.active_bet st = 0 then prompt_cmd_init name
+(** [get_command name st] is the command for a valid poker action given
+    by player of name [name] in game state [st]. *)
+let get_command name st =
+  let is_dummy = (State.get_player name st).is_AI in
+  if is_dummy then Ai.command st
+  else if State.active_bet st = 0 then prompt_cmd_init name
   else prompt_cmd_open name
 
 (** [make_bet name current_bet raise_to st] is the next game state from
@@ -115,7 +94,7 @@ let make_bet name current_bet raise_to st =
 let rec perform_turns st =
   try
     let name, bet = Queue.pop action_queue in
-    let cmd = prompt_command name st in
+    let cmd = get_command name st in
     let st' =
       match cmd with
       | Bet amt -> make_bet name 0 amt st
