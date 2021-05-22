@@ -20,103 +20,36 @@ let ranks_lst hand =
   List.map (fun (x : Card.t) -> x.rank) sorted
 
 (** [suits_lst hand] is a list of all the suits in [hand].*)
-let suits_lst hand = List.map (fun (x : Card.t) -> x.suit) hand
+let suits_lst hand = 
+  let get_suit_value suit =
+    match suit with
+    | Spades -> 1
+    | Clubs -> 2
+    | Hearts -> 3
+    | Diamonds -> 4
+  in
+  let suit_compare card1 card2 =
+    let s1 = card1.suit in
+    let s2 = card2.suit in
+    let s1_value = get_suit_value s1 in
+    let s2_value = get_suit_value s2 in
+    compare s1_value s2_value
+  in
+  List.sort suit_compare hand
 
 (** [highest_rank hand] is the highest rank of the cards in [hand]*)
 let highest_rank hand =
-  let ranks = ranks_lst hand in
+  let ranks = List.rev (ranks_lst hand) in
   match ranks with
-  | [ _; _; _; _; r5 ] -> r5
-  | _ -> raise (Invalid_argument "hand is not a valid input")
+  | high :: t -> high
+  | _ -> raise (Invalid_argument "invalid hand")
+
 
 (** [high_card hand] is a tuple option with 1 and the list of ranks sorted in
     descending order*)
 let high_card hand =
-  let desc_ranks = List.rev (ranks_lst hand) in
-  Some (1, desc_ranks)
-
-(** [four_of_a_kind hand] is a tuple option with 8 and the list of ranks with
-    the four similar cards at the front and the different one at the
-    end. If there is no four of a kind, it is None*)
-let four_of_a_kind hand =
-  let ranks = ranks_lst hand in
-  match ranks with
-  | [ r1; r2; r3; r4; r5 ] ->
-      if r1 = r2 && r2 = r3 && r3 = r4 then
-        Some (8, [ r1; r2; r3; r4; r5 ])
-      else if r2 = r3 && r3 = r4 && r4 = r5 then
-        Some (8, [ r2; r3; r4; r5; r1 ])
-      else None
-  | _ -> raise (Invalid_argument "hand is invalid")
-
-(** [three_of_a_kind hand] is a tuple option with 4 and the list of ranks with
-    the three similar cards at the front and the two different ones at the
-    end in descending order. If there is no three of a kind, it is None*)
-let three_of_a_kind hand =
-  let ranks = ranks_lst hand in
-  match ranks with
-  | [ r1; r2; r3; r4; r5 ] ->
-      if r1 = r2 && r2 = r3 then Some (4, [ r1; r2; r3; r4; r5 ])
-      else if r2 = r3 && r3 = r4 then Some (4, [ r2; r3; r4; r5; r1 ])
-      else if r3 = r4 && r4 = r5 then Some (4, [ r3; r4; r5; r2; r1 ])
-      else None
-  | _ -> raise (Invalid_argument "hand is invalid")
-
-(** [straight hand] is a tuple option with 5 and the list of ranks in
-    descending order if the hand is a straight. If it is not, then it is None*)
-let straight hand =
-  let ranks = ranks_lst hand in
-  match ranks with
-  | [ r1; r2; r3; r4; r5 ] ->
-      if r1 = r2 - 1 && r2 = r3 - 1 - 1 && r4 = r5 - 1 then
-        Some (5, [ r5; r4; r3; r2; r1 ])
-      else if r1 = 2 && r2 = 3 && r3 = 4 && r4 = 5 && r5 = 14 then
-        Some (5, [ r4; r3; r2; r1; r5 ])
-      else None
-  | _ -> raise (Invalid_argument "hand is invalid")
-
-(** [flush hand] is a tuple option with 6 and the list of ranks in
-    descending order if the hand is a flush. If it is not, then it is None*)
-let flush hand =
-  let suits = suits_lst hand in
-  match suits with
-  | [ s1; s2; s3; s4; s5 ] ->
-      if s1 = s2 && s2 = s3 && s3 = s4 && s4 = s5 then
-        Some (6, List.rev (ranks_lst hand))
-      else None
-  | _ -> raise (Invalid_argument "hand is invalid")
-
-(** [straight_flush hand] is a tuple option with 9 and the list of ranks
-    in descending order if the hand is a straight flush. If it is not, then it
-    is None*)
-let straight_flush hand =
-  if straight hand != None && flush hand != None then
-    Some (9, List.rev (ranks_lst hand))
-  else None
-
-(** [royal_flush hand] is a tuple option with 10 and the list of cards
-    in descending order. If no royal flush, then it is None*)
-let royal_flush hand =
-  if
-    straight hand != None
-    && flush hand != None
-    && highest_rank hand = 14
-  then Some (10, List.rev (ranks_lst hand))
-  else None
-
-(** [full_house hand] is a tuple option with 7 and the list of ranks with
-    the three of a kind in the front and the pair in the back. If no full
-    house, then it is None*)
-let full_house hand =
-  let ranks = ranks_lst hand in
-  match ranks with
-  | [ r1; r2; r3; r4; r5 ] ->
-      if r1 = r2 && r2 = r3 && r4 = r5 then
-        Some (7, [ r1; r2; r3; r4; r5 ])
-      else if r3 = r4 && r4 = r5 && r1 = r2 then
-        Some (7, [ r3; r4; r5; r1; r2 ])
-      else None
-  | _ -> raise (Invalid_argument "hand is invalid")
+  let rank = highest_rank hand in
+  if rank > 10 then Some (1, hand) else Some (0, hand)
 
 (** [num_pairs ranks acc] is the number of pairs in a rank list*)
 let rec num_pairs ranks acc =
@@ -147,16 +80,15 @@ let pair_helper rank ranks =
     the paired ranks are leftmost and the other cards are following in
     descending order. If there is no pair, it is None. *)
 let pair hand =
-  let ranks = ranks_lst hand in
-  if
-    three_of_a_kind hand != None
-    || four_of_a_kind hand != None
-    || full_house hand != None
-  then None
-  else
-    let rank = highest_pair ranks 0 in
-    let pair_list = pair_helper rank ranks in
-    if num_pairs ranks 0 = 1 then Some (2, pair_list) else None
+  let sorted = ranks_lst hand in
+  let rec pair_help sorted =
+    match sorted with
+    | r1 :: r2 :: t -> begin
+      if r1 = r2 then Some (2, hand) else pair_help (r2 :: t)
+    end
+    | _ -> None
+  in
+  pair_help sorted
 
 (** [same_rank_list ranks acc] is a list of the pairs in a rank list*)
 let rec same_rank_list ranks acc =
@@ -169,7 +101,7 @@ let rec same_rank_list ranks acc =
 (** [two_pair_help values ranks] is the list of ranks in ranks with the
     pairs at the leftmost of the list in descending order and the different
     caard at the end*)
-let two_pair_help values ranks =
+let two_pair_helper values ranks =
   let first_four = List.rev (List.sort compare values) in
   first_four
   @ List.filter (fun x -> List.mem x first_four = false) ranks
@@ -178,30 +110,177 @@ let two_pair_help values ranks =
     the pairs are on the left in descending order. If there is no two pair,
     then it is None. *)
 let two_pair hand =
-  let ranks = ranks_lst hand in
-  if
-    three_of_a_kind hand != None
-    || four_of_a_kind hand != None
-    || full_house hand != None
-  then None
+  let sorted = ranks_lst hand in
+  let rec two_pair_help sorted already_found =
+    match sorted with
+    | r1 :: r2 :: t -> begin
+      if r1 = r2 && already_found
+        then Some (3, hand)
+      else if r1 = r2
+        then two_pair_help t true
+      else
+        two_pair_help (r2 :: t) already_found
+    end
+    | _ -> None
+  in
+  two_pair_help sorted false
+
+(** [three_of_a_kind hand] is a tuple option with 4 and the list of ranks with
+    the three similar cards at the front and the two different ones at the
+    end in descending order. If there is no three of a kind, it is None*)
+let three_of_a_kind hand =
+  if List.length hand < 3 then pair hand
   else
-    let num_of_pairs = num_pairs ranks 0 in
-    let values = same_rank_list ranks [] in
-    let list_of_hand = two_pair_help values ranks in
-    if num_of_pairs = 2 then Some (3, list_of_hand) else None
+    let sorted = ranks_lst hand in
+    let rec three_of_kind_help sorted =
+      match sorted with
+      | r1 :: r2 :: r3 :: t -> begin
+        if r1 = r2 && r2 = r3
+          then Some (4, hand)
+        else
+          three_of_kind_help (r2 :: r3 :: t)
+      end
+      | _ -> None
+    in
+    three_of_kind_help sorted
+
+(** [straight hand] is a tuple option with 5 and the list of ranks in
+    descending order if the hand is a straight. If it is not, then it is None*)
+let straight hand =
+  let sorted = ranks_lst hand in
+  let rec straight_help sorted =
+    if List.mem 2 sorted && List.mem 3 sorted && List.mem 4 sorted
+      && List.mem 5 sorted && List.mem 14 sorted 
+      then Some (5, hand)
+    else
+      match sorted with
+      | r1 :: r2 :: t -> begin
+        if r1 + 1 = r2 then straight_help (r2 :: t) else None
+      end
+      | _ -> Some (5, hand)
+  in
+  match sorted with
+  | [r1; r2; r3; r4; r5; r6] -> begin
+    if straight_help [r1; r2; r3; r4; r5] = None
+      then straight_help [r2; r3; r4; r5; r6]
+    else straight_help [r1; r2; r3; r4; r5]
+  end
+  | [r1; r2; r3; r4; r5; r6; r7] -> begin
+    if straight_help [r1; r2; r3; r4; r5] = None
+      then
+        if straight_help [r2; r3; r4; r5; r6] = None
+          then straight_help [r3; r4; r5; r6; r7]
+        else straight_help [r2; r3; r4; r5; r6]
+    else straight_help [r1; r2; r3; r4; r5]
+  end
+  | _ -> straight_help sorted
+
+(** [flush hand] is a tuple option with 6 and the list of ranks in
+    descending order if the hand is a flush. If it is not, then it is None*)
+let flush hand =
+  let suits = suits_lst hand in
+  let rec flush_help suits =
+    match suits with
+    | suit1 :: suit2 :: t -> begin
+      if suit1 = suit2 then flush_help (suit2 :: t) else None
+    end
+    | _ -> Some (6, hand)
+  in
+  match suits with
+  | [s1; s2; s3; s4; s5; s6] -> begin
+    if flush_help [s1; s2; s3; s4; s5] = None
+      then flush_help [s2; s3; s4; s5; s6]
+    else flush_help [s1; s2; s3; s4; s5]
+  end
+  | [s1; s2; s3; s4; s5; s6; s7] -> begin
+    if flush_help [s1; s2; s3; s4; s5] = None
+      then
+        if flush_help [s2; s3; s4; s5; s6] = None
+          then flush_help [s3; s4; s5; s6; s7]
+        else flush_help [s2; s3; s4; s5; s6]
+    else flush_help [s1; s2; s3; s4; s5]
+  end
+  | _ -> flush_help suits
+
+  (** [full_house hand] is a tuple option with 7 and the list of ranks with
+    the three of a kind in the front and the pair in the back. If no full
+    house, then it is None*)
+let full_house hand =
+  let sorted = ranks_lst hand in
+  let rec full_house_help sorted already_pair already_three =
+    match sorted with
+    | r1 :: r2 :: r3 :: t -> begin
+      if r1 = r2 && r2 = r3 && already_pair then Some (7, hand)
+      else if r1 = r2 && r2 = r3 then full_house_help t already_pair true
+      else if r1 = r2 && already_three then Some (7, hand)
+      else if r1 = r2 then full_house_help (r3 :: t) true already_three
+      else full_house_help (r2 :: r3 :: t) already_pair already_three
+    end
+    | [r1; r2] -> begin
+      if r1 = r2 && already_three then Some (7, hand) else None
+    end
+    | _ -> None
+  in
+  full_house_help sorted false false
+
+(** [four_of_a_kind hand] is a tuple option with 8 and the list of ranks with
+    the four similar cards at the front and the different one at the
+    end. If there is no four of a kind, it is None*)
+let four_of_a_kind hand =
+  if List.length hand < 4 then three_of_a_kind hand
+  else
+    let sorted = ranks_lst hand in
+    let rec four_kind_help sorted =
+      match sorted with
+      | r1 :: r2 :: r3 :: r4 :: t -> begin
+        if r1 = r2 && r2 = r3 && r3 = r4
+          then Some (8, hand)
+        else four_kind_help (r2 :: r3 :: r4 :: t)
+      end
+      | _ -> None
+    in
+    four_kind_help sorted
+
+(** [straight_flush hand] is a tuple option with 9 and the list of ranks
+    in descending order if the hand is a straight flush. If it is not, then it
+    is None*)
+let straight_flush hand =
+  if straight hand != None && flush hand != None then
+    Some (9, hand)
+  else None
+
+(** [royal_flush hand] is a tuple option with 10 and the list of cards
+    in descending order. If no royal flush, then it is None*)
+let royal_flush hand =
+  let sorted = ranks_lst hand in
+  if straight_flush hand = None then None
+  else
+    match sorted with
+    | [r1; r2; r3; r4; r5] -> begin
+      if r1 = 10 && r2 = 11 && r3 = 12 && r4 = 13 && r5 = 14
+        then Some (10, hand) else None
+    end
+    | [r1; r2] -> begin
+      if r1 = 10 && r2 = 11 || r1 = 11 && r2 = 12 || r1 = 12 && r2 = 13 ||
+        r1 = 13 && r2 = 14
+        then Some (10, hand)
+      else None
+    end
+    | _ -> None
 
 (** [combnk k lst] is all combinations of length k in list [lst]. Credit for
     the algorithm and implementation is given to 
     https://codereview.stackexchange.com/questions/40366/combinations-of-size-k-from-a-list-in-ocaml*)
 let rec combnk k lst =
-  if k = 0 then [ [] ]
+  if k <= 0 then [[]]
   else
-    let rec combnk_help = function
-      | [] -> []
-      | h :: t ->
-          List.map (fun x -> h :: x) (combnk (k - 1) t) :: combnk_help t
-    in
-    List.concat (combnk_help lst)
+    match lst with
+    | [] -> []
+    | h :: t -> begin
+      let with_h = List.map (fun x -> h :: x) (combnk (k - 1) t) in
+      let without_h = combnk k t in
+      with_h @ without_h
+    end
 
 (** [every_hand pl st] is all the possible 5 hand combinations for player [pl] in
     state [st]. *)
@@ -229,16 +308,12 @@ let best_hand hand =
 
 (** [remaining_boards table] are all remaining cards that can
     complete the board. *)
-let remaining_boards (table : Table.table) =
-  let board = table.board in
-  let deck = table.deck in
-  match board with
-  | None -> combnk 5 deck
-  | Some cards ->
-      let len = List.length cards in
-      if len = 3 then combnk 2 deck
-      else if len = 4 then combnk 1 deck
-      else []
+let remaining_boards board deck =
+  let len = List.length board in
+  if len = 0 then combnk 5 deck
+  else if len = 3 then combnk 2 deck
+  else if len = 4 then combnk 1 deck
+  else []
 
 let rank cards =
   let best = best_hand cards in
@@ -315,12 +390,12 @@ let hand_potential ai_hand board deck table =
           else if (ai_rank = opp_rank) then 1
           else 2
         in
-        let board_combinations = remaining_boards table in
+        let board_combinations = remaining_boards board deck in
         let new_hand_pot =
-          let rec hp_help2 ai_hand opp_cards board total_hp hp board_combos index =
+          let rec hp_help2 ai_hand opp_cards board total_hp hp board_combos now =
             match board_combos with
             | [] -> hp
-            | combo1 :: t' ->
+            | combo1 :: t' -> 
               let board1 = board @ combo1 in
               let ai_best = rank (ai_hand @ board1) in
               let opp_best = rank (opp_cards @ board1) in
@@ -419,14 +494,14 @@ let basic st =
 (** sublist algorithm taken from stack exchange:
     https://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml. *)
 let sublist lst =
-  let rec sublist b e l = 
+  let rec sublist_help b e l = 
     match l with
       [] -> failwith "sublist"
     | h :: t -> 
-        let tail = if e=0 then [] else sublist (b-1) (e-1) t in
+        let tail = if e=0 then [] else sublist_help (b-1) (e-1) t in
         if b>0 then tail else h :: tail
   in
-  sublist 0 (List.length lst / 10) lst
+  sublist_help 0 (List.length lst / 10) lst
 
 (** [get_first_bot pls] is the first bot in the player list [pls]. *)
 let rec get_first_bot pls =
