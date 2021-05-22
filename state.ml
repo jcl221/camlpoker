@@ -191,7 +191,7 @@ let straight hand =
   let ranks = ranks_lst hand in
   match ranks with
   | [ r1; r2; r3; r4; r5 ] ->
-      if r1 = r2 - 1 && r2 = r3 - 1 - 1 && r4 = r5 - 1 then
+      if r1 = r2 - 1 && r2 = r3 - 1 && r3 = r4 - 1 && r4 = r5 - 1 then
         Some (5, [ r5; r4; r3; r2; r1 ])
       else if r1 = 2 && r2 = 3 && r3 = 4 && r4 = 5 && r5 = 14 then
         Some (5, [ r4; r3; r2; r1; r5 ])

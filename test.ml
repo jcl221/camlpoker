@@ -270,6 +270,114 @@ let pair2 =
     init_card Clubs 9;
   ]
 
+let two_pair1 =
+  [
+    init_card Diamonds 12;
+    init_card Clubs 12;
+    init_card Clubs 4;
+    init_card Hearts 13;
+    init_card Spades 4;
+  ]
+
+let two_pair2 =
+  [
+    init_card Spades 14;
+    init_card Hearts 14;
+    init_card Spades 7;
+    init_card Hearts 7;
+    init_card Diamonds 4;
+  ]
+
+let three_of_kind =
+  [
+    init_card Spades 14;
+    init_card Hearts 14;
+    init_card Clubs 14;
+    init_card Spades 7;
+    init_card Diamonds 4;
+  ]
+
+let straight1 =
+  [
+    init_card Clubs 3;
+    init_card Hearts 4;
+    init_card Clubs 5;
+    init_card Hearts 6;
+    init_card Diamonds 7;
+  ]
+
+let straight2 =
+  [
+    init_card Diamonds 4;
+    init_card Spades 5;
+    init_card Hearts 7;
+    init_card Diamonds 6;
+    init_card Clubs 3;
+  ]
+
+let flush1 =
+  [
+    init_card Clubs 4;
+    init_card Clubs 5;
+    init_card Clubs 7;
+    init_card Clubs 14;
+    init_card Clubs 3;
+  ]
+
+let flush2 =
+  [
+    init_card Clubs 2;
+    init_card Clubs 6;
+    init_card Clubs 8;
+    init_card Clubs 12;
+    init_card Clubs 13;
+  ]
+
+let full_house =
+  [
+    init_card Spades 4;
+    init_card Clubs 4;
+    init_card Hearts 4;
+    init_card Spades 14;
+    init_card Hearts 14;
+  ]
+
+let four_of_kind1 =
+  [
+    init_card Hearts 5;
+    init_card Clubs 5;
+    init_card Spades 5;
+    init_card Diamonds 5;
+    init_card Clubs 3;
+  ]
+
+let four_of_kind2 =
+  [
+    init_card Hearts 6;
+    init_card Clubs 6;
+    init_card Spades 6;
+    init_card Diamonds 6;
+    init_card Clubs 3;
+  ]
+
+let straight_flush =
+  [
+    init_card Clubs 4;
+    init_card Clubs 5;
+    init_card Clubs 7;
+    init_card Clubs 6;
+    init_card Clubs 3;
+  ]
+
+let royal =
+  [
+    init_card Clubs 10;
+    init_card Clubs 11;
+    init_card Clubs 12;
+    init_card Clubs 14;
+    init_card Clubs 13;
+  ]
+
 let compare_hands_test name hand1 hand2 expected =
   name >:: fun _ -> assert_equal expected (compare_hands hand1 hand2)
 
@@ -279,6 +387,22 @@ let hand_rank_tests =
     compare_hands_test "hand vs. higher hand" high_card1 high_card2 (-1);
     compare_hands_test "pair vs. high card" pair1 high_card2 1;
     compare_hands_test "higher pair vs. pair" pair2 pair1 1;
+    compare_hands_test "pair vs. 2pair" pair2 two_pair1 (-1);
+    compare_hands_test "higher 2pair vs. lower" two_pair2 two_pair1 1;
+    compare_hands_test "3ofkind vs. 2pair" three_of_kind two_pair1 1;
+    compare_hands_test "3ofkind vs. straight" three_of_kind straight1 (-1);
+    compare_hands_test "straight tie" straight1 straight2 0;
+    compare_hands_test "straight vs. pair" straight1 pair1 1;
+    compare_hands_test "flush vs. straight" flush1 straight1 1;
+    compare_hands_test "higher flush vs. lower" flush1 flush2 1;
+    compare_hands_test "full house vs. flush" full_house flush1 1;
+    compare_hands_test "full house vs. four of kind" full_house
+      four_of_kind1 (-1); 
+    compare_hands_test "four of kind higher vs. lower" four_of_kind1
+      four_of_kind2 (-1);
+    compare_hands_test "straight flush vs. four of kind" straight_flush
+      four_of_kind2 1;
+    compare_hands_test "royal vs. straight flush" royal straight_flush 1;
   ]
 
 let suite =
