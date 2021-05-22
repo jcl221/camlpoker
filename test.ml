@@ -62,6 +62,26 @@ let player2 =
     is_AI = true;
   }
 
+let player3 =
+  {
+    name = "Clarkson";
+    hand = hand2;
+    stack = 133;
+    last_decision = Some "Call";
+    folded = false;
+    is_AI = true;
+  }
+
+let player4 =
+  {
+    name = "James";
+    hand = hand2;
+    stack = 33;
+    last_decision = Some "Fold";
+    folded = true;
+    is_AI = false;
+  }
+
 let player_string_help test_name player expected =
   test_name >:: fun _ ->
   assert_equal (string_of_hand player) expected ~printer:pp_string
@@ -80,6 +100,16 @@ let player_tests =
     player_help "folded check" player1.folded false;
     player_help "is AI check player 1" player1.is_AI false;
     player_help "is AI check player 2" player2.is_AI true;
+    player_help "last decision check" player3.last_decision
+      (Some "Call");
+    player_help "player1 stack check" player3.stack 133;
+    player_help "name check" player3.name "Clarkson";
+    player_help "folded check" player3.folded false;
+    player_help "last decision check" player4.last_decision
+      (Some "Fold");
+    player_help "player1 stack check" player4.stack 33;
+    player_help "folded check" player4.folded true;
+    player_help "is AI check player 1" player4.is_AI false;
   ]
 
 let init_card_test name suit rank expected_output =
@@ -118,6 +148,15 @@ let card_mod_tests =
     string_of_card_test "Second string_of_card test"
       { suit = Diamonds; rank = 3 }
       "\n......\n|♦   |\n| 3  |\n|   ♦|\n......";
+    string_of_card_test "Third string_of_card test"
+      { suit = Hearts; rank = 7 }
+      "\n......\n|♥   |\n| 7  |\n|   ♥|\n......";
+    string_of_card_test "Fourth string_of_card test"
+      { suit = Spades; rank = 9 }
+      "\n......\n|♠   |\n| 9  |\n|   ♠|\n......";
+    string_of_card_test "Fifth string_of_card test"
+      { suit = Diamonds; rank = 2 }
+      "\n......\n|♦   |\n| 2  |\n|   ♦|\n......";
   ]
 
 (** [deck_size_test name deck expected] is the OUnit test named [name],
