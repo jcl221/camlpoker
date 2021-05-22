@@ -14,9 +14,33 @@ let hand1 = ({ suit = Spades; rank = 10 }, { suit = Hearts; rank = 12 })
 
 let hand2 = ({ suit = Clubs; rank = 14 }, { suit = Diamonds; rank = 8 })
 
-let string_of_hand1 = "( 10 of Spades, Queen of Hearts )"
+let string_of_hand1 =
+  (*"( 10 of Spades, Queen of Hearts )"*)
+  "( \n\
+   ......\n\
+   |♠   |\n\
+   | 10 |\n\
+   |   ♠|\n\
+   ......, \n\
+   ......\n\
+   |♥   |\n\
+   | Q  |\n\
+   |   ♥|\n\
+   ...... )"
 
-let string_of_hand2 = "( Ace of Clubs, 8 of Diamonds )"
+let string_of_hand2 =
+  (*"( Ace of Clubs, 8 of Diamonds )"*)
+  "( \n\
+   ......\n\
+   |♣   |\n\
+   | A  |\n\
+   |   ♣|\n\
+   ......, \n\
+   ......\n\
+   |♦   |\n\
+   | 8  |\n\
+   |   ♦|\n\
+   ...... )"
 
 let player1 =
   {
@@ -70,7 +94,7 @@ let get_rank_test name card expected_output =
 
 let string_of_card_test name card expected_output =
   name >:: fun ctxt ->
-  assert_equal expected_output (string_of_card card)
+  assert_equal expected_output (string_of_card card) ~printer:pp_string
 
 let card_mod_tests =
   [
@@ -89,11 +113,11 @@ let card_mod_tests =
     get_rank_test "First get_rank test" { suit = Hearts; rank = 6 } 6;
     get_rank_test "Second get_rank test" { suit = Spades; rank = 9 } 9;
     string_of_card_test "First string_of_card test"
-      { suit = Spades; rank = 7 }
-      "7 of Spades";
+      { suit = Clubs; rank = 14 }
+      "\n......\n|♣   |\n| A  |\n|   ♣|\n......";
     string_of_card_test "Second string_of_card test"
       { suit = Diamonds; rank = 3 }
-      "3 of Diamonds";
+      "\n......\n|♦   |\n| 3  |\n|   ♦|\n......";
   ]
 
 (** [deck_size_test name deck expected] is the OUnit test named [name],
@@ -136,20 +160,11 @@ let raise_exn_test name exn f = name >:: fun _ -> assert_raises exn f
     2) whose most recent community card was in the table to draw from,
     [table] *)
 
-(*
-let new_card_test name table =
-  name >:: fun _ ->
-  let new_table = init_table in
-  let drawn =
-    match snd new_table with
-    | Some (h :: _) -> h
-    | Some [] | None -> failwith "No card drawn"
-  in
-  let old_deck = fst table in
-  let new_deck = fst new_table in
-  assert (contains_card drawn old_deck);
-  assert (not (contains_card drawn new_deck))
-*)
+(* let new_card_test name table = name >:: fun _ -> let new_table =
+   init_table in let drawn = match snd new_table with | Some (h :: _) ->
+   h | Some [] | None -> failwith "No card drawn" in let old_deck = fst
+   table in let new_deck = fst new_table in assert (contains_card drawn
+   old_deck); assert (not (contains_card drawn new_deck)) *)
 (* Test decks *)
 let start_deck = init_deck ()
 
@@ -172,9 +187,9 @@ let table_tests =
     full_deck_test "shuffling preserves elements of a deck"
       shuffled_deck;
     (*raise_exn_test "oversized deck is an invalid starting deck"
-        Invalid_Deck (fun _ -> assert_valid_start oversized);
+      Invalid_Deck (fun _ -> assert_valid_start oversized);
       raise_exn_test "deck with one card is an invalid starting deck"
-        Invalid_Deck (fun _ -> assert_valid_start one_card_deck);*)
+      Invalid_Deck (fun _ -> assert_valid_start one_card_deck);*)
   ]
 
 (****************************************************************)
