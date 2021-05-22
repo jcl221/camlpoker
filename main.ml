@@ -126,9 +126,9 @@ let dummy_cmd st =
 let get_command name bet st =
   print_string (name ^ "'s Turn: ");
 
-  (*let player = State.get_player name st in if player.is_AI then
-    dummy_cmd st else *)
-  if State.active_bet st = 0 then prompt_cmd_init name st
+  let player = State.get_player name st in
+  if player.is_AI then dummy_cmd st
+  else if State.active_bet st = 0 then prompt_cmd_init name st
   else prompt_cmd_open name st
 
 (** [make_bet name current raise_to st] is the next game state from [st]
