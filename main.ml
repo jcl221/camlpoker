@@ -1,15 +1,3 @@
-module Opponent = struct
-  let turn st : Command.t =
-    print_string "Dummy's Turn: ";
-    match State.active_bet st with
-    | 0 ->
-        print_endline "check";
-        Check
-    | _ ->
-        print_endline "call";
-        Call
-end
-
 let bet_floor_err = "Your bet must be greater than 0. "
 
 let insuff_chips_err = "You don't have enough chips! "
@@ -68,9 +56,10 @@ and screen_bet name st amt =
     print_string msg;
     prompt_cmd_init name st
   in
+  let chips = State.chips name st in
   match amt with
   | x when x <= 0 -> reprompt bet_floor_err
-  | x when x > State.chips name st -> reprompt insuff_chips_err
+  | x when x > chips -> reprompt insuff_chips_err
   | _ -> Bet amt
 
 (** [prompt_cmd_open name] prompts the player with name [name] for a
@@ -114,15 +103,15 @@ and screen_call name st =
       print_string insuff_chips_err;
       prompt_cmd_open name st
 
-(** [dummy_cmd st] is the command for a valid poker action given by the
-    AI dummy in game state [st]. *)
+(** [get_dummy_cmd st] is the command for a valid poker action given by
+    the AI dummy in game state [st]. *)
 let dummy_cmd st =
   let cmd = Ai.command st in
   cmd |> Command.string_of_cmd |> print_endline;
   cmd
 
 (** [get_command name st] is the command for a valid poker action given
-    by player of name [name] in game state [st]. *)
+    by player of name [name] in game state [st] during a betting round. *)
 let get_command name bet st =
   print_string (name ^ "'s Turn: ");
 
@@ -191,7 +180,7 @@ let update st =
 (** [draw st player_id] draws the game state [st] onto the UI. The hands
     of every player except the main user (identified by the id
     [main_user]) are obscured. *)
-let draw main_user st = State.print_state st main_user false
+let draw main_user st = State.print_state st main_user true
 
 (** [game_loop main_user st] draws the state [st] onto the UI and
     updates it accordingly for another iteration of loop. The player
