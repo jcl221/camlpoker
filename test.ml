@@ -274,10 +274,6 @@ let active_bet_test name st expected =
 let active_players_test name st expected =
   name >:: fun _ -> assert_equal expected (State.active_players st)
 
-let locked_test name st expected =
-  name >:: fun _ ->
-  assert_equal expected (State.locked st) ~printer:string_of_bool
-
 let init_chips = 200
 
 let new_match = State.init_state [ "dum1"; "dum2" ]
@@ -291,13 +287,6 @@ let fold1 = bet2 |> State.fold "dum1"
 let reset = fold1 |> State.reset [ "dum2" ]
 
 let showdown = fold1 |> State.deal_center 5 |> State.showdown
-
-let all_in1 = reset |> State.all_in "dum2" 0
-
-let all_in2 = all_in1 |> State.all_in "dum1" 0
-
-let all_in3 =
-  new_match |> State.all_in "dum1" 0 |> State.all_in "dum2" 0
 
 let state_tests =
   [
@@ -323,17 +312,6 @@ let state_tests =
     active_bet_test "showdown resets active bet back to 0" showdown 0;
     active_players_test "all players after showdown are active" showdown
       [ "dum1"; "dum2" ];
-    active_bet_test "if all-in amt > active bet, active bet increases"
-      all_in1 250;
-    chips_test "all-in depletes chips" "dum2" all_in1 0;
-    locked_test "all-in > active bet doesn't lock betting" all_in1 false;
-    active_bet_test "if all-in amt < active bet, active bet decreases"
-      all_in2 150;
-    chips_test "all-in depletes chips" "dum1" all_in2 0;
-    chips_test "redistribution of pot from all-in" "dum2" all_in2 100;
-    locked_test "all-in < active bet locks betting" all_in2 true;
-    locked_test "all-in = active bet locks betting" all_in3 true;
-    locked_test "lock betting" (State.lock new_match) true;
   ]
 
 (****************************************************************)
