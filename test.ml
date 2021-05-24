@@ -329,7 +329,6 @@ let command_tests =
     parse_test "parse check cmd" "Check " Check;
     parse_test "parse call cmd" "cALL" Call;
     parse_test "parse fold cmd" "    fold    " Fold;
-    parse_test "parse all-in cmd" "All in" AllIn;
     parse_test "invalid bet cmd" "Bet" Invalid;
     parse_test "invalid bet arg" "Bet x" Invalid;
     parse_test "invalid raise cmd" "Raise child" Invalid;
